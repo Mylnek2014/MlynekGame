@@ -12,6 +12,7 @@ public class MenPosition
     private int m_YPosition;
     private int m_Y2Position;
     private Bitmap m_image;
+    
 
     public MenPosition(int x, int y, int edgeSize)
     {
