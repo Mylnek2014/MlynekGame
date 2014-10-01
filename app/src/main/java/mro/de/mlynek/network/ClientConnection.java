@@ -98,4 +98,11 @@ public class ClientConnection implements Connection, ClientConnectionListener {
             mListener.onClientConnect();
         }
     }
+
+    @Override
+    public void onClientConnectionFailed() {
+        if(mListener != null) {
+            mListener.onClientConnectionFailed();
+        }
+    }
 }

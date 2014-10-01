@@ -5,4 +5,5 @@ package mro.de.mlynek.network;
  */
 public interface ClientConnectionListener {
     public void onClientConnect();
+    public void onClientConnectionFailed();
 }

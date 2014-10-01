@@ -39,7 +39,9 @@ public class ThreadClient extends Thread {
             }
         } else {
             Log.d("INFO", "Client failed to connect");
-            //FIXME Error handling
+            if(mListener != null) {
+                mListener.onClientConnectionFailed();
+            }
             return;
         }
 

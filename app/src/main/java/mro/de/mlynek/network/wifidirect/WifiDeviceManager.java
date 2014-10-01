@@ -55,14 +55,13 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     static final String SERVICE_REG_TYPE = "_presence._tcp";
     static final String GAMENAME="Młynek";
 
-    public WifiDeviceManager(Activity activity, ArrayAdapter<String> arrayAdapter, Class<? extends Activity> onConnectActivity) {
+    public WifiDeviceManager(Activity activity, Class<? extends Activity> onConnectActivity) {
         if(activity == null) {
             throw new IllegalArgumentException(("No Activity"));
         }
 
         mDeviceManager = this;
         mActivity = activity;
-        mArrayAdapter = arrayAdapter;
         mWifiEnabled = false;
         if(onConnectActivity == null) {
             throw new IllegalArgumentException("No onConnectActivity");
@@ -83,6 +82,10 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mServerconn = null;
         mServiceInfo = null;
         mDevices = new ArrayList<WifiP2pDevice>();
+    }
+
+    public void setAdapter(ArrayAdapter<String> arrayAdapter) {
+        mArrayAdapter = arrayAdapter;
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -148,15 +151,16 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 public void onDnsSdTxtRecordAvailable(String s, Map<String, String> record, WifiP2pDevice p2pdevice) {
                     Log.d("INFO", "DnsSdTxtRecord available -" + record.toString());
                     Toast.makeText(mActivity.getApplicationContext(), "DnsSdTxtRecord available" + record.toString(), Toast.LENGTH_SHORT).show();
-                    //TODO: Spielname
-                    if(record.containsKey("game") && record.get("game").equals(GAMENAME)) {
-                        if(record.containsKey("servername")) {
-                            mArrayAdapter.add(/*p2pdevice.deviceName + " " + p2pdevice.deviceAddress*/ record.get("servername"));
-                        } else {
-                            mArrayAdapter.add("Dieses Gerät ist dumm");
+                    if(!mDevices.contains(p2pdevice)) {
+                        if (record.containsKey("game") && record.get("game").equals(GAMENAME)) {
+                            if (record.containsKey("servername")) {
+                                mArrayAdapter.add(/*p2pdevice.deviceName + " " + p2pdevice.deviceAddress*/ record.get("servername"));
+                            } else {
+                                mArrayAdapter.add("Dieses Gerät ist dumm");
+                            }
+                            mDevices.add(p2pdevice);
+                            mArrayAdapter.notifyDataSetChanged();
                         }
-                        mDevices.add(p2pdevice);
-                        mArrayAdapter.notifyDataSetChanged();
                     }
                 }
             };
@@ -382,7 +386,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         }
     }
 
-    //TODO static function to close channel (disconnect)
     public static void disconnect(Activity activity, WifiP2pManager.Channel channel) {
         WifiP2pManager tmpManager = (WifiP2pManager)activity.getSystemService(Context.WIFI_P2P_SERVICE);
         if(tmpManager != null) {
@@ -405,7 +408,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         Intent intent = new Intent(mActivity, mOnConnectActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mActivity.startActivity(intent);
-        //TODO Clear unused state
     }
 
     @Override
@@ -414,6 +416,10 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         Intent intent = new Intent(mActivity, mOnConnectActivity);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
         mActivity.startActivity(intent);
-        //TODO Clear unused state
+    }
+
+    @Override
+    public void onClientConnectionFailed() {
+        //FIXME Propagate somehow?
     }
 }
