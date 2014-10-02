@@ -91,10 +91,11 @@ public class GameView extends SurfaceView
                 Log.d("OnTouchEvent", "ClearMen: " + m_clearMen);
                 if(m_clearMen)
                 {
-                    if(m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                    if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
                     {
                         m_menPositions[clickedIndex].setImage(null);
                         m_team = (m_team + 1) % 2;
+                        m_clearMen = false;
                     }
                 }
                 else
@@ -323,58 +324,17 @@ public class GameView extends SurfaceView
             {
                 if(clickedIndex == m_mills[i][y])
                 {
-                    if(m_menPositions[m_mills[i][0]].getImage().equals(m_menPositions[m_mills[i][1]].getImage()))
+                    if(m_menPositions[m_mills[i][0]].hasMen() && m_menPositions[m_mills[i][1]].hasMen() && m_menPositions[m_mills[i][2]].hasMen())
                     {
-                        millExist = true;
-                    }
-                    if(m_menPositions[m_mills[i][0]].getImage().equals(m_menPositions[m_mills[i][2]].getImage()))
-                    {
-                        millExist = true;
+                        if(m_menPositions[m_mills[i][0]].getImage().equals(m_menPositions[m_mills[i][1]].getImage()) && m_menPositions[m_mills[i][0]].getImage().equals(m_menPositions[m_mills[i][2]].getImage()))
+                        {
+                            millExist = true;
+                        }
                     }
                 }
             }
         }
         Log.d("CheckForMill", "MillExist: " + millExist);
-//        int xPosition = m_menPositions[clickedIndex].getXPosition();
-//        int yPosition = m_menPositions[clickedIndex].getYPosition();
-//        int count = 0;
-
-//        // Prüfen der X-Achse
-//        int startIndex = clickedIndex - (clickedIndex % 3);
-//        int endIndex = startIndex + 2;
-//
-//        for(int i = startIndex; i < endIndex; i++)
-//        {
-//            if(m_menPositions[i].hasMen() && m_menPositions[i].getImage().equals(m_menPositions[i + 1].getImage()))
-//            {
-//                count++;
-//            }
-//        }
-//
-//        if(count == 2)
-//        {
-//            millExist = true;
-//        }
-//        else
-//        {
-//            count = 0;
-//
-//            // Prüfen der Y-Achse
-//            for(MenPosition mp : m_menPositions)
-//            {
-//                if(xPosition == mp.getXPosition())
-//                {
-//                    if(mp.getXPosition() == (m_pitch.getHeight() / 2) - (m_menImage.getHeight() / 2))
-//                    {
-////                        if(m_menPositions[clickedIndex].getYPosition() && )
-//                    }
-//                    else
-//                    {
-//                        count++;
-//                    }
-//                }
-//            }
-//        }
 
         return millExist;
     }
