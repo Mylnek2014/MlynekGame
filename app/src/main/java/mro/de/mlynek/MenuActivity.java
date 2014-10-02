@@ -43,6 +43,9 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
             startActivity(gameIntent);
             finish();
         }
+        if(view.getId() == R.id.refresh) {
+            wifidevmanager.searchDevices();
+        }
     }
 
     @Override
