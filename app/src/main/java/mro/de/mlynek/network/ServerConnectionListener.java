@@ -5,4 +5,5 @@ package mro.de.mlynek.network;
  */
 public interface ServerConnectionListener {
     public void onConnect();
+    public void onDisconnect();
 }

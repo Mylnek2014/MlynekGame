@@ -1,7 +1,6 @@
 package mro.de.mlynek;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -15,7 +14,6 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import mro.de.mlynek.network.ClientConnection;
 import mro.de.mlynek.network.ClientConnectionListener;
@@ -62,7 +60,7 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
         getActivity().getWindowManager().getDefaultDisplay().getSize(size);
         imageView.setImageBitmap(Util.decodeSampledBitmapFromResource(getResources(), R.drawable.bgmenu, size.x, size.y));
         play.setImageBitmap(Util.decodeSampledBitmapFromResource(getResources(), R.drawable.startbtn, size.x / 2, size.y / 2 / 2));
-        //TODO Refresh Button Bitmap
+        //TODO Neue Refresh Button Bitmap mit passender Größe
         refresh.setImageBitmap(Util.decodeSampledBitmapFromResource(getResources(), R.drawable.refresh, size.x / 2, size.y / 2 / 2));
     }
 
@@ -108,21 +106,24 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
                 }
             } else {
                 //FIXME set to i when removing the testcode
-                wifidevmanager.connectToDevice(i+1);
+                wifidevmanager.connectToDevice(i-1);
             }
         }
     }
 
     @Override
     public void onClientConnect() {
-        Intent intent = new Intent(getActivity(), GameActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        getActivity().startActivity(intent);
+        ((MenuActivity)getActivity()).onClientConnect();
     }
 
     @Override
     public void onClientConnectionFailed() {
         ipConn.close();
         ipConn = null;
+    }
+
+    @Override
+    public void onClientDisconnect() {
+        Log.d("Info", "Client(me) disconnected from Server");
     }
 }

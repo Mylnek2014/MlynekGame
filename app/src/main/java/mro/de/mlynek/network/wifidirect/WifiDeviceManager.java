@@ -54,8 +54,9 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     static final String SERVICE_INSTANCE = "_test";
     static final String SERVICE_REG_TYPE = "_presence._tcp";
     static final String GAMENAME="Młynek";
+    private WifiDeviceManagerListener wdmListener;
 
-    public WifiDeviceManager(Activity activity, Class<? extends Activity> onConnectActivity) {
+    public WifiDeviceManager(Activity activity) {
         if(activity == null) {
             throw new IllegalArgumentException(("No Activity"));
         }
@@ -63,10 +64,10 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mDeviceManager = this;
         mActivity = activity;
         mWifiEnabled = false;
-        if(onConnectActivity == null) {
+        /*if(onConnectActivity == null) {
             throw new IllegalArgumentException("No onConnectActivity");
         }
-        mOnConnectActivity = onConnectActivity;
+        mOnConnectActivity = onConnectActivity;*/
         filter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -82,10 +83,15 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mServerconn = null;
         mServiceInfo = null;
         mDevices = new ArrayList<WifiP2pDevice>();
+        wdmListener = null;
     }
 
     public void setAdapter(ArrayAdapter<String> arrayAdapter) {
         mArrayAdapter = arrayAdapter;
+    }
+
+    public ArrayAdapter<String> getAdapter() {
+        return mArrayAdapter;
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -278,6 +284,7 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 @Override
                 public void onSuccess() {
                     Toast.makeText(mActivity.getApplicationContext(), GAMENAME + " WIfi P2P Service Registered", Toast.LENGTH_SHORT).show();
+                    Log.d("INFO", GAMENAME + " WIfi P2P Service Registered");
                 }
 
                 @Override
@@ -288,11 +295,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
             });
         } else {
             //Unregister Service
-            try {
-                mActivity.unregisterReceiver(mReceiver);
-            } catch(IllegalArgumentException iae) {
-                //Service was not registered
-            }
             try {
                 mWifiP2pManager.removeLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
                     @Override
@@ -312,41 +314,26 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         }
     }
 
-    public static void unregisterService(final Activity activity, WifiP2pManager.Channel channel, BroadcastReceiver receiver, WifiP2pDnsSdServiceInfo serviceInfo) {
-        //Unregister Service
-        try {
-            activity.unregisterReceiver(receiver);
-        } catch(IllegalArgumentException iae) {
-            //Service was not registered
-        }
-        try {
-            WifiP2pManager tmpManager = (WifiP2pManager)activity.getSystemService(Context.WIFI_P2P_SERVICE);
-
-            if(tmpManager == null) {
-                Log.i("Info", "FAIL: Could not get WifiP2pManager");
-                return;
-            }
-            tmpManager.removeLocalService(channel, serviceInfo, new WifiP2pManager.ActionListener() {
-                @Override
-                public void onSuccess() {
-                    Toast.makeText(activity.getApplicationContext(), GAMENAME + " WIfi P2P Service Unregistered", Toast.LENGTH_SHORT).show();
-                }
-
-                @Override
-                public void onFailure(int i) {
-                    Log.d("ERROR", "Could not unregister " + GAMENAME + " WIfi P2P Service");
-                    Toast.makeText(activity.getApplicationContext(), "Could not unregister" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch(IllegalArgumentException iae) {
-            //Service was not registered
+    public void stopWifiServer() {
+        if(mServerconn != null) {
+            mServerconn.close();
+            mServerconn = null;
         }
     }
 
     public void close() {
         setDiscoverable(false, "");
+        //FIXME check if this breaks stuff
+        try {
+            mActivity.unregisterReceiver(mReceiver);
+        } catch(IllegalArgumentException iae) {
+            //Service was not registered
+        }
         if(gameListener != null) {
             gameListener = null;
+        }
+        if(wdmListener != null) {
+            wdmListener = null;
         }
         if(mServerconn != null) {
             mServerconn.close();
@@ -389,11 +376,12 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
 
     @Override
     public void onPeersAvailable(WifiP2pDeviceList wifiP2pDeviceList) {
-        mArrayAdapter.clear();
+        Log.d("Info", "onPeersAvailable called");
+        /*mArrayAdapter.clear();
         for(WifiP2pDevice p2pdevice: wifiP2pDeviceList.getDeviceList()) {
             mArrayAdapter.add(p2pdevice.deviceName + " " + p2pdevice.deviceAddress);
             mDevices.add(p2pdevice);
-        }
+        }*/
     }
 
     @Override
@@ -401,6 +389,10 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         Log.i("Info", "Got Connection Info");
         if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
             Log.i("Info", "Server");
+            if(mServerconn != null) {
+                mServerconn.close();
+                mServerconn = null;
+            }
             //Start server thread
             mServerconn = ServerConnection.createConnection(PORT);
             mServerconn.setConnectionListener(this);
@@ -425,12 +417,12 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 tmpManager.removeGroup(channel, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        //TODO
+                        Log.d("INFO", "Channel removed successfully");
                     }
 
                     @Override
                     public void onFailure(int i) {
-                        //TODO
+                        Log.d("INFO", "Channel removing failed");
                     }
                 });
             } catch(IllegalArgumentException iae) {
@@ -439,23 +431,55 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         }
     }
 
+    public void setListener(WifiDeviceManagerListener listener) {
+        wdmListener = listener;
+    }
+
     @Override
     public void onConnect() {
-        Intent intent = new Intent(mActivity, mOnConnectActivity);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        mActivity.startActivity(intent);
+        if(wdmListener != null) {
+            wdmListener.onWifiConnect();
+        } else {
+            Log.d("ERROR", "No wdmListener (onConnect)");
+        }
+    }
+
+    @Override
+    public void onDisconnect() {
+        if(wdmListener != null) {
+            wdmListener.onWifiDisconnect();
+        } else {
+            Log.d("ERROR", "No wdmListener (onDisconnect)");
+        }
     }
 
     @Override
     public void onClientConnect() {
+        if(wdmListener != null) {
+            wdmListener.onWifiClientConnect();
+        } else {
+            Log.d("ERROR", "No wdmListener (onClientConnect)");
+        }
         mClientconn.write("msg Hello World");
-        Intent intent = new Intent(mActivity, mOnConnectActivity);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        mActivity.startActivity(intent);
     }
 
     @Override
     public void onClientConnectionFailed() {
         //FIXME Propagate somehow?
+        Log.d("INFO", "WifiDeviceManager onClientConnectionFailed");
+        if(wdmListener != null) {
+            wdmListener.onWifiClientConnectionFailed();
+        } else {
+            Log.d("ERROR", "No wdmListener (onClientConnectionFailed)");
+        }
+    }
+
+    @Override
+    public void onClientDisconnect() {
+        if(wdmListener != null) {
+            wdmListener.onWifiClientDisconnect();
+        } else {
+            Log.d("ERROR", "No wdmListener (onClientDisconnect)");
+        }
     }
 }

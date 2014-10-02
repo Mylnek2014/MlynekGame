@@ -15,11 +15,18 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import java.util.Timer;
+
+import mro.de.mlynek.network.Connection;
+import mro.de.mlynek.network.ServerConnection;
+
 /**
  * Created by Sony on 10.09.2014.
  */
 public class GameView extends SurfaceView
 {
+    private static final int MAXCLICKINDEX = 23;
+
     private Point m_size = new Point();
     private int m_edge;
     private int m_columnHeight;
@@ -45,11 +52,16 @@ public class GameView extends SurfaceView
     private int m_menCountTeamOne;
     private int m_menCountTeamTwo;
 
+    private Connection connection;
+    private int myTeam;
+    Timer sendTimer;
+
     public GameView(Context context)
     {
         super(context);
 
         gameActivity = (GameActivity)context;
+
         // Höhen und Breiten berechnen
         ((Activity)context).getWindowManager().getDefaultDisplay().getSize(m_size);
         m_edge = (m_size.y - m_size.x) / 2;
@@ -92,6 +104,102 @@ public class GameView extends SurfaceView
             {
             }
         });
+
+        Log.d("INFO", "Game view created");
+
+        connection = ((GameActivity)context).getConnection();
+        m_lokalGame = ((GameActivity)context).isLocalGame();
+        if(m_lokalGame) {
+            Log.d("Info", "local Game");
+        } else {
+            Log.d("Info", "Network Game");
+        }
+
+        //TODO: Fair team assignement (is m_team used for the same purpose?)
+        if(connection instanceof ServerConnection) {
+            myTeam = 0;
+        } else {
+            myTeam = 1;
+        }
+
+        sendTimer = new Timer();
+    }
+
+    //TODO: Better cheat protection
+    public void handleMessage(String message) {
+        Log.d("HandleMessage", "Received message: "+message);
+        if(message.startsWith("set")) {
+            if(isMyTurn()) {
+                Log.d("HandleMessage", "Enemy tried to set men during my Turn!");
+                return;
+            }
+            String[] tmp = message.split(" ");
+            if(tmp.length >= 2) {
+                for(String t: tmp) {
+                    Log.d("Parts", t);
+                }
+                //TODO: Handle better (Error Dialog or something)
+                try {
+                    int clickIndex = Integer.parseInt(tmp[1].trim());
+                    handleClick(clickIndex, false);
+                } catch(NumberFormatException nfe) {
+                    Log.d("HandleMessage", "Number Format Exception in set");
+                    Log.d("HandleMessage", message);
+                    nfe.printStackTrace();
+                }
+            }
+        } else if (message.startsWith("move")) {
+            if(isMyTurn()) {
+                Log.d("HandleMessage", "Enemy tried to move men during my Turn!");
+                return;
+            }
+            String[] tmp = message.split(" ");
+            if(tmp.length >= 3) {
+                for(String t: tmp) {
+                    Log.d("Parts", t);
+                }
+                //TODO: Handle better (Error Dialog or something)
+                try {
+                    int lastIndex = Integer.parseInt(tmp[1].trim());
+                    int clickIndex = Integer.parseInt(tmp[2].trim());
+                    moveMen(lastIndex, clickIndex);
+                    //TODO: Put this into moveMen (or an extra function that also calls moveMen)
+                    if(!checkForMill(clickIndex)) {
+                        changeTeam();
+                    }
+                } catch(NumberFormatException nfe) {
+                    Log.d("HandleMessage", "Number Format Exception in move");
+                    Log.d("HandleMessage", message);
+                    nfe.printStackTrace();
+                }
+            }
+        } else if(message.startsWith("clear")) {
+            if(isMyTurn()) {
+                Log.d("HandleMessage", "Enemy tried to clear men during my Turn!");
+                return;
+            }
+            String[] tmp = message.split(" ");
+            if(tmp.length >= 2) {
+                for(String t: tmp) {
+                    Log.d("Parts", t);
+                }
+                //TODO: Handle better (Error Dialog or something)
+                try {
+                    int clickIndex = Integer.parseInt(tmp[1].trim());
+                    clearMen(clickIndex);
+                } catch(NumberFormatException nfe) {
+                    Log.d("HandleMessage", "Number Format Exception in clear");
+                    Log.d("HandleMessage", message);
+                    nfe.printStackTrace();
+                }
+            }
+        } else if(message.startsWith("disconnect")) {
+            //TODO: Show dialog instead of exiting
+            gameActivity.finish();
+        } else {
+            Log.d("handleMessage", "Unhandled Message:\n"+message);
+        }
+        drawView();
     }
 
     @Override
@@ -113,7 +221,104 @@ public class GameView extends SurfaceView
 
     private void touchWifi(MotionEvent event)
     {
+        Log.d("WifiTouchEvent", "ActionDown");
+        if(!isMyTurn()) {
+            Log.d("WifiTouchEvent", "Not my Turn");
+            return;
+        }
+        //Log.d("OnTouchEvent", "ActionDown");
+        int clickedIndex = checkClickPosition(event.getX(), event.getY());
+        Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
+        handleClick(clickedIndex, true);
+    }
 
+    private boolean isMyTurn() {
+        return m_team == myTeam;
+    }
+
+    //FIXME: Make sure the message gets either send fast or the game is paused
+    //till it can be send
+    private void sendMessage(String message) {
+        if(sendTimer != null) {
+            sendTimer.schedule(new SendTask(connection, this, message), 0);
+        }
+    }
+
+    private void handleClick(int clickedIndex, boolean local) {
+        boolean deSelect = false;
+
+        if(isValidIndex(clickedIndex))
+        {
+            if(m_clearMen)
+            {
+                clearMen(clickedIndex);
+                if(local) {
+                    sendMessage("clear "+clickedIndex+"\n");
+                }
+            }
+            else
+            {
+                if(isSetPhase())
+                {
+                    if(!m_menPositions[clickedIndex].hasMen())
+                    {
+                        setMen(clickedIndex);
+                        if(local) {
+                            sendMessage("set "+clickedIndex+" \n");
+                            //Log.d("handleClick", "Could not send");
+                        }
+                    }
+                }
+                else
+                {
+                    if(m_lastMenIndex > -1)
+                    {
+                        if(m_lastMenIndex == clickedIndex)
+                        {
+                            m_lastMenIndex = -1;
+                            deSelect = true;
+                            if(local) {
+                                sendMessage("select " + clickedIndex + " \n");
+                            }
+                        }
+                        else
+                        {
+                            moveMen(clickedIndex);
+                        }
+                    }
+                    else
+                    {
+                        Log.d("OnTouchEvent", "lastMenIndex: gesetzt");
+                        if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                        {
+                            m_lastMenIndex = clickedIndex;
+                            /*if(local) {
+                                sendMessage("set " + clickedIndex + " \n");
+                            }*/
+                        }
+                    }
+
+                }
+
+                if(m_lastMenIndex == -1 && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
+                {
+                    if(checkForMill(clickedIndex))
+                    {
+                        Log.d("OnTouchEvent", "CheckForMill");
+                        m_clearMen = true;
+                        if(local) {
+                            sendMessage("checkForMil "+clickedIndex+" \n");
+                            //Log.d("handleClick", "Could not send");
+                        }
+                    }
+                    else
+                    {
+                        changeTeam();
+                    }
+                }
+            }
+            drawView();
+        }
     }
 
     private void touchLokal2(MotionEvent event)
@@ -138,30 +343,22 @@ public class GameView extends SurfaceView
                         setMen(clickedIndex);
                     }
                 }
-                else
-                {
-                    if(m_lastMenIndex > -1)
-                    {
-                        if(m_lastMenIndex == clickedIndex)
-                        {
+                else {
+                    if (m_lastMenIndex > -1) {
+                        if (m_lastMenIndex == clickedIndex) {
                             m_lastMenIndex = -1;
                             deSelect = true;
-                        }
-                        else
-                        {
+                        } else {
                             moveMen(clickedIndex);
                         }
-                    }
-                    else
-                    {
+                    } else {
                         Log.d("OnTouchEvent", "lastMenIndex: gesetzt");
-                        if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
-                        {
+                        if (m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage())) {
                             m_lastMenIndex = clickedIndex;
                         }
                     }
-
                 }
+
 
                 if(m_lastMenIndex == -1 && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
                 {
@@ -185,10 +382,13 @@ public class GameView extends SurfaceView
 
     private void clearMen(int clickedIndex)
     {
+        Log.d("clearmen", "Clickindex: "+clickedIndex);
         if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
         {
+            Log.d("clearmen", "hasmen && !currentteam: "+clickedIndex);
             if(!checkForMill(clickedIndex))
             {
+                Log.d("clearmen", "!mill: "+clickedIndex);
                 removeMen(clickedIndex);
                 decreaseEnemyMenCount();
                 changeTeam();
@@ -224,7 +424,7 @@ public class GameView extends SurfaceView
     private boolean isValidIndex(int clickedIndex)
     {
         boolean valid = false;
-        if(clickedIndex > -1)
+        if(clickedIndex > -1 && clickedIndex <= MAXCLICKINDEX)
         {
             valid = true;
         }
@@ -312,10 +512,18 @@ public class GameView extends SurfaceView
             {
                 setMen(clickedIndex);
                 removeMen(m_lastMenIndex);
+                if(isMyTurn()) {
+                    sendMessage("move " + m_lastMenIndex + " " + clickedIndex + " \n");
+                }
                 m_lastMenIndex = -1;
             }
         }
 
+    }
+
+    private void moveMen(int lastIndex, int clickedIndex) {
+        m_lastMenIndex = lastIndex;
+        moveMen(clickedIndex);
     }
 
     private int getCurrentTeamMenCount()
@@ -426,9 +634,18 @@ public class GameView extends SurfaceView
     @SuppressLint("WrongCall")
     private void drawView()
     {
-        Canvas canvas = getHolder().lockCanvas();
-        this.onDraw(canvas);
-        getHolder().unlockCanvasAndPost(canvas);
+        Canvas canvas = null;
+
+        try {
+            canvas = getHolder().lockCanvas();
+            if(canvas != null) {
+                this.onDraw(canvas);
+            }
+        } finally {
+            if(canvas != null) {
+                getHolder().unlockCanvasAndPost(canvas);
+            }
+        }
     }
 
     private void createMenPositions()
@@ -734,12 +951,26 @@ public class GameView extends SurfaceView
 
     private void setMen(int index)
     {
-        m_menPositions[index].setImage(getCurrentTeamImage());
-        m_turnCount++;
+        if(!m_menPositions[index].hasMen()) {
+            m_menPositions[index].setImage(getCurrentTeamImage());
+            m_turnCount++;
+        }
     }
 
     private void removeMen(int index)
     {
+        if(isMyTurn()) {
+            sendMessage("unset "+index+" \n");
+            //Log.d("handleClick", "Could not send");
+        }
         m_menPositions[index].setImage(null);
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        if(sendTimer != null) {
+            sendTimer.purge();
+            sendTimer = null;
+        }
     }
 }

@@ -81,7 +81,9 @@ public class ClientConnection implements Connection, ClientConnectionListener {
     }
 
     public void close() {
-        refCount--;
+        if(refCount > 0) {
+            refCount--;
+        }
         Log.i("INFO", "Client connection closed. RefCount: "+refCount);
         if(refCount == 0) {
             if(tc != null) {
@@ -103,6 +105,13 @@ public class ClientConnection implements Connection, ClientConnectionListener {
     public void onClientConnectionFailed() {
         if(mListener != null) {
             mListener.onClientConnectionFailed();
+        }
+    }
+
+    @Override
+    public void onClientDisconnect() {
+        if(mListener != null) {
+            mListener.onClientDisconnect();
         }
     }
 }

@@ -19,6 +19,7 @@ public class GameFragment extends Fragment
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
     {
         view = new GameView(getActivity());
+        ((GameActivity)getActivity()).setView((GameView)view);
         return view;
     }
 }

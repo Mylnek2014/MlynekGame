@@ -58,6 +58,9 @@ public class GenericServer extends Thread {
                     scl.onConnect();
                 }
             } catch(SocketException se) {
+                if(scl != null) {
+                    scl.onDisconnect();
+                }
                 return;
             }
             InputStream in = mmSocket.getInputStream();
@@ -101,8 +104,8 @@ public class GenericServer extends Thread {
                                 mOutBuffer[i] = buffer[i];
                             }
                             if (bytes > 0) {
-                                Log.d("INFO", "Received Bytes" + tmp);
-                                Log.d("INFO", "As String " + new String(Arrays.copyOf(buffer, bytes)));
+                                /*Log.d("GenericServer", "Received Bytes" + tmp);
+                                Log.d("GenericServer", "As String " + new String(Arrays.copyOf(buffer, bytes)));*/
                             }
                         }
                     } catch(SocketTimeoutException ste) {
@@ -129,11 +132,15 @@ public class GenericServer extends Thread {
             if(serverSocket != null) {
                 try {
                     serverSocket.close();
-                    Log.i("INFO", "Disconnected");
+                    Log.i("INFO", "Generic Server Disconnected");
                     connected = false;
                     serverSocket = null;
                 } catch (IOException e) {
                     e.printStackTrace();
+                } finally {
+                    if(scl != null) {
+                        scl.onDisconnect();
+                    }
                 }
             }
         }
@@ -193,5 +200,8 @@ public class GenericServer extends Thread {
         }
         mRunning = false;
         connected = false;
+        if(scl != null) {
+            scl = null;
+        }
     }
 }

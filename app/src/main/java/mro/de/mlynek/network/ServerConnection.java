@@ -98,7 +98,9 @@ public class ServerConnection implements Connection {
     }
 
     public void close() {
-        refCount--;
+        if(refCount > 0) {
+            refCount--;
+        }
         Log.i("INFO", "Server connection closed. RefCount: "+refCount);
         if(refCount == 0) {
             if(gs != null) {

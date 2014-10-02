@@ -94,8 +94,8 @@ public class ThreadClient extends Thread {
                                 tmp += " " + readBytes[i];
                                 mOutBuffer[i] = readBytes[i];
                             }
-                        /*Log.d("INFO", "Read Bytes: " + tmp);
-                        Log.d("INFO", "As String " + new String(Arrays.copyOf(readBytes, bytesread)));*/
+                        /*Log.d("ThreadClient", "Read Bytes: " + tmp);
+                        Log.d("ThreadClient", "As String " + new String(Arrays.copyOf(readBytes, bytesread)));*/
                         }
                     }
                 } catch(SocketException se) {
@@ -114,7 +114,10 @@ public class ThreadClient extends Thread {
             }
         }
         connected = false;
-        Log.i("INFO", "Disconnected");
+        if(mListener != null) {
+            mListener.onClientDisconnect();
+        }
+        Log.i("INFO", "Thread Client Disconnected");
     }
 
     public boolean isConnected() {
@@ -162,6 +165,9 @@ public class ThreadClient extends Thread {
         connected = false;
         if(mClient != null) {
             mClient.close();
+        }
+        if(mListener != null) {
+            mListener = null;
         }
     }
 }
