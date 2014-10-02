@@ -51,8 +51,8 @@ public class GameView extends SurfaceView
         // Bilder...
         //m_backgroundImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.bgmenu, m_size.x, m_size.y);
         m_pitch = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.pitch, m_size.x, m_size.y);
-        m_menImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.men, m_menHeight, m_menHeight);
-        m_men2Image = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.men2, m_menHeight, m_menHeight);
+        m_menImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.german, m_menHeight, m_menHeight);
+        m_men2Image = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.polski, m_menHeight, m_menHeight);
 
         // Setzen der Mühlenpositionen, Steinpositionen
         m_mills = setMillPositions();
@@ -93,9 +93,12 @@ public class GameView extends SurfaceView
                 {
                     if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
                     {
-                        m_menPositions[clickedIndex].setImage(null);
-                        m_team = (m_team + 1) % 2;
-                        m_clearMen = false;
+                        if(!checkForMill(clickedIndex))
+                        {
+                            m_menPositions[clickedIndex].setImage(null);
+                            m_team = (m_team + 1) % 2;
+                            m_clearMen = false;
+                        }
                     }
                 }
                 else
