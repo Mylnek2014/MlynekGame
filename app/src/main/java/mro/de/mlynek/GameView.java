@@ -6,6 +6,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Point;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -21,6 +22,7 @@ public class GameView extends SurfaceView
     private int m_edge;
     private int m_columnHeight;
     private int m_menHeight;
+    private boolean m_lokalGame = true;
 
     private SurfaceHolder m_surfaceHolder;
     private Bitmap m_backgroundImage;
@@ -30,9 +32,14 @@ public class GameView extends SurfaceView
 
     private MenPosition[] m_menPositions;
     private int[][] m_mills;
+    private int[][] m_movePositions;
     private int m_turnCount;
     private int m_team = 0;
     private boolean m_clearMen;
+    private int m_lastMenIndex;
+
+    private int m_menCountTeamOne;
+    private int m_menCountTeamTwo;
 
     public GameView(Context context)
     {
@@ -47,6 +54,9 @@ public class GameView extends SurfaceView
         // Steuervarialen fürs Spiel
         m_turnCount = 0;
         m_clearMen = false;
+        m_lastMenIndex = -1;
+        m_menCountTeamOne = 9;
+        m_menCountTeamTwo = 9;
 
         // Bilder...
         //m_backgroundImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.bgmenu, m_size.x, m_size.y);
@@ -56,6 +66,7 @@ public class GameView extends SurfaceView
 
         // Setzen der Mühlenpositionen, Steinpositionen
         m_mills = setMillPositions();
+        m_movePositions = setMovePosition();
         createMenPositions();
 
         m_surfaceHolder = getHolder();
@@ -80,39 +91,191 @@ public class GameView extends SurfaceView
     @Override
     public boolean onTouchEvent(MotionEvent event)
     {
-//        Log.d("OnTouchEvent", "start");
         if(event.getAction() == MotionEvent.ACTION_DOWN)
         {
-            Log.d("OnTouchEvent", "ActionDown");
-            int clickedIndex = checkClickPosition(event.getX(), event.getY());
-            Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
-            if(clickedIndex > -1)
+            if(m_lokalGame)
             {
-                Log.d("OnTouchEvent", "ClearMen: " + m_clearMen);
-                if(m_clearMen)
+                touchLokal2(event);
+            }
+            else
+            {
+                touchWifi(event);
+            }
+        }
+        return true;
+    }
+
+    private void touchWifi(MotionEvent event)
+    {
+
+    }
+
+    private void touchLokal2(MotionEvent event)
+    {
+        Log.d("OnTouchEvent", "ActionDown");
+        int clickedIndex = checkClickPosition(event.getX(), event.getY());
+        Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
+        boolean deSelect = false;
+
+        if(isValidIndex(clickedIndex))
+        {
+            if(m_clearMen)
+            {
+                clearMen(clickedIndex);
+            }
+            else
+            {
+                if(isSetPhase())
                 {
-                    if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                    if(!m_menPositions[clickedIndex].hasMen())
                     {
-                        if(!checkForMill(clickedIndex))
-                        {
-                            m_menPositions[clickedIndex].setImage(null);
-                            m_team = (m_team + 1) % 2;
-                            m_clearMen = false;
-                        }
+                        setMen(clickedIndex);
                     }
                 }
                 else
                 {
-                    if(m_turnCount < 18 && !m_menPositions[clickedIndex].hasMen())
+                    if(m_lastMenIndex > -1)
                     {
-                        m_menPositions[clickedIndex].setImage(getCurrentTeamImage());
-                        m_turnCount++;
+                        if(m_lastMenIndex == clickedIndex)
+                        {
+                            m_lastMenIndex = -1;
+                            deSelect = true;
+                        }
+                        else
+                        {
+                            moveMen(clickedIndex);
+                        }
                     }
                     else
                     {
-
+                        Log.d("OnTouchEvent", "lastMenIndex: gesetzt");
+                        if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                        {
+                            m_lastMenIndex = clickedIndex;
+                        }
                     }
 
+                }
+
+                if(m_lastMenIndex == -1 && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
+                {
+                    if(checkForMill(clickedIndex))
+                    {
+                        Log.d("OnTouchEvent", "CheckForMill");
+                        m_clearMen = true;
+                    }
+                    else
+                    {
+                        changeTeam();
+                    }
+                }
+            }
+            drawView();
+        }
+    }
+
+    private void clearMen(int clickedIndex)
+    {
+        if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+        {
+            if(!checkForMill(clickedIndex))
+            {
+                removeMen(clickedIndex);
+                decreaseEnemyMenCount();
+                changeTeam();
+                m_clearMen = false;
+            }
+        }
+
+    }
+
+    private void decreaseEnemyMenCount()
+    {
+        if(getEnemyTeamNumber() == 0)
+        {
+            m_menCountTeamOne--;
+        }
+        else
+        {
+            m_menCountTeamTwo--;
+        }
+    }
+
+    private int getEnemyTeamNumber()
+    {
+        return (m_team + 1) % 2;
+    }
+
+    private void changeTeam()
+    {
+        m_team = getEnemyTeamNumber();
+    }
+
+    private boolean isValidIndex(int clickedIndex)
+    {
+        boolean valid = false;
+        if(clickedIndex > -1)
+        {
+            valid = true;
+        }
+        return valid;
+    }
+
+    private boolean isSetPhase()
+    {
+        boolean setPhase = false;
+        if(m_turnCount < 18)
+        {
+            setPhase = true;
+        }
+        return setPhase;
+    }
+
+    private void touchLokal(MotionEvent event)
+    {
+        Log.d("OnTouchEvent", "ActionDown");
+        int clickedIndex = checkClickPosition(event.getX(), event.getY());
+        Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
+        if(clickedIndex > -1)
+        {
+            // Stein entfernen
+            if(m_clearMen)
+            {
+                if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                {
+                    if(!checkForMill(clickedIndex))
+                    {
+                        m_menPositions[clickedIndex].setImage(null);
+                        m_team = (m_team + 1) % 2;
+                        m_clearMen = false;
+                    }
+                }
+            }
+            else
+            {
+                if(m_turnCount < 18 && !m_menPositions[clickedIndex].hasMen())
+                {
+                    setMen(clickedIndex);
+                }
+                else
+                {
+                    if(m_lastMenIndex > -1)
+                    {
+                        moveMen(clickedIndex);
+                        m_menPositions[m_lastMenIndex].setImage(null);
+                    }
+                    else
+                    {
+                        Log.d("OnTouchEvent", "lastMenIndex: gesetzt");
+                        if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
+                        {
+                            m_lastMenIndex = clickedIndex;
+                        }
+                    }
+                }
+
+                if(m_lastMenIndex == -1)
+                {
                     if(checkForMill(clickedIndex))
                     {
                         Log.d("OnTouchEvent", "CheckForMill");
@@ -123,11 +286,63 @@ public class GameView extends SurfaceView
                         m_team = (m_team + 1) % 2;
                     }
                 }
+            }
 
-                drawView();
+            drawView();
+        }
+        Log.d("OnTouchEvent", "TurnCount: " + String.valueOf(m_turnCount));
+    }
+
+    private void moveMen(int clickedIndex)
+    {
+        if(!m_menPositions[clickedIndex].hasMen())
+        {
+            // Nachbarfelder vom Stein abfragen
+            if(isValidPositions(clickedIndex))
+            {
+                setMen(clickedIndex);
+                removeMen(m_lastMenIndex);
+                m_lastMenIndex = -1;
             }
         }
-        return true;
+
+    }
+
+    private int getCurrentTeamMenCount()
+    {
+        int count;
+        if(m_team == 0)
+        {
+            count = m_menCountTeamOne;
+        }
+        else
+        {
+            count = m_menCountTeamTwo;
+        }
+        return count;
+    }
+
+    private boolean isValidPositions(int clickedIndex)
+    {
+        boolean isValid = false;
+
+        if(getCurrentTeamMenCount() < 4)
+        {
+            isValid = true;
+        }
+        else
+        {
+            for(int i = 0; i < 4; i++)
+            {
+                if(clickedIndex == m_movePositions[m_lastMenIndex][i])
+                {
+                    isValid = true;
+                    break;
+                }
+            }
+        }
+
+        return isValid;
     }
 
     private Bitmap getCurrentTeamImage()
@@ -150,6 +365,14 @@ public class GameView extends SurfaceView
         canvas.drawColor(Color.argb(255,92,141,229));
         canvas.drawBitmap(m_pitch, 0, m_edge, null);
 
+        if(m_lastMenIndex > -1)
+        {
+            Paint color = new Paint();
+            color.setColor(Color.RED);
+            canvas.drawCircle(m_menPositions[m_lastMenIndex].getXPosition() + m_menImage.getHeight()/2-5, m_menPositions[m_lastMenIndex].getYPosition()+ m_menImage.getWidth()/2-5, m_menImage.getHeight()/2-10, color);
+
+        }
+
         Log.d("MRO GameView", "Check Positions");
         for(MenPosition mp : m_menPositions)
         {
@@ -158,6 +381,15 @@ public class GameView extends SurfaceView
                 canvas.drawBitmap(mp.getImage(), mp.getXPosition(), mp.getYPosition(), null);
             }
         }
+        canvas.drawBitmap(getCurrentTeamImage(), 10, 10, null);
+
+        canvas.drawBitmap(m_menImage, 5, m_size.y - m_menImage.getHeight(), null);
+        canvas.drawBitmap(m_men2Image, m_size.x-m_men2Image.getWidth()-5, m_size.y - m_men2Image.getHeight() - 5, null);
+        Paint color = new Paint();
+        color.setColor(Color.BLACK);
+
+        canvas.drawText(String.valueOf(m_menCountTeamOne), 5, m_size.y - m_menImage.getHeight(), color);
+        canvas.drawText(String.valueOf(m_menCountTeamTwo), m_size.x-10, m_size.y - m_men2Image.getHeight(), color);
 
     }
 
@@ -290,6 +522,134 @@ public class GameView extends SurfaceView
         return mills;
     }
 
+    private int[][] setMovePosition()
+    {
+        int[][] positions = new int[24][4];
+
+        positions[0][0] = 1;
+        positions[0][1] = 9;
+        positions[0][2] = -1;
+        positions[0][3] = -1;
+
+        positions[1][0] = 0;
+        positions[1][1] = 2;
+        positions[1][2] = 4;
+        positions[1][3] = -1;
+
+        positions[2][0] = 1;
+        positions[2][1] = 14;
+        positions[2][2] = -1;
+        positions[2][3] = -1;
+
+        positions[3][0] = 4;
+        positions[3][1] = 10;
+        positions[3][2] = -1;
+        positions[3][3] = -1;
+
+        positions[4][0] = 1;
+        positions[4][1] = 3;
+        positions[4][2] = 5;
+        positions[4][3] = 7;
+
+        positions[5][0] = 4;
+        positions[5][1] = 13;
+        positions[5][2] = -1;
+        positions[5][3] = -1;
+
+        positions[6][0] = 11;
+        positions[6][1] = 7;
+        positions[6][2] = -1;
+        positions[6][3] = -1;
+
+        positions[7][0] = 4;
+        positions[7][1] = 6;
+        positions[7][2] = 8;
+        positions[7][3] = -1;
+
+        positions[8][0] = 7;
+        positions[8][1] = 12;
+        positions[8][2] = -1;
+        positions[8][3] = -1;
+
+        positions[9][0] = 0;
+        positions[9][1] = 10;
+        positions[9][2] = 21;
+        positions[9][3] = -1;
+
+        positions[10][0] = 3;
+        positions[10][1] = 9;
+        positions[10][2] = 11;
+        positions[10][3] = 18;
+
+        positions[11][0] = 6;
+        positions[11][1] = 10;
+        positions[11][2] = 15;
+        positions[11][3] = -1;
+
+        positions[12][0] = 8;
+        positions[12][1] = 13;
+        positions[12][2] = 17;
+        positions[12][3] = -1;
+
+        positions[13][0] = 5;
+        positions[13][1] = 12;
+        positions[13][2] = 14;
+        positions[13][3] = 20;
+
+        positions[14][0] = 2;
+        positions[14][1] = 13;
+        positions[14][2] = 23;
+        positions[14][3] = -1;
+
+        positions[15][0] = 11;
+        positions[15][1] = 16;
+        positions[15][2] = -1;
+        positions[15][3] = -1;
+
+        positions[16][0] = 15;
+        positions[16][1] = 17;
+        positions[16][2] = 19;
+        positions[16][3] = -1;
+
+        positions[17][0] = 12;
+        positions[17][1] = 16;
+        positions[17][2] = -1;
+        positions[17][3] = -1;
+
+        positions[18][0] = 10;
+        positions[18][1] = 19;
+        positions[18][2] = -1;
+        positions[18][3] = -1;
+
+        positions[19][0] = 16;
+        positions[19][1] = 18;
+        positions[19][2] = 20;
+        positions[19][3] = 22;
+
+        positions[20][0] = 13;
+        positions[20][1] = 19;
+        positions[20][2] = -1;
+        positions[20][3] = -1;
+
+        positions[21][0] = 9;
+        positions[21][1] = 22;
+        positions[21][2] = -1;
+        positions[21][3] = -1;
+
+        positions[22][0] = 19;
+        positions[22][1] = 21;
+        positions[22][2] = 23;
+        positions[22][3] = -1;
+
+        positions[23][0] = 14;
+        positions[23][1] = 22;
+        positions[23][2] = -1;
+        positions[23][3] = -1;
+
+
+        return positions;
+    }
+
     private int checkClickPosition(float x, float y)
     {
         int index = -1;
@@ -342,4 +702,14 @@ public class GameView extends SurfaceView
         return millExist;
     }
 
+    private void setMen(int index)
+    {
+        m_menPositions[index].setImage(getCurrentTeamImage());
+        m_turnCount++;
+    }
+
+    private void removeMen(int index)
+    {
+        m_menPositions[index].setImage(null);
+    }
 }
