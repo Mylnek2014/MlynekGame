@@ -28,10 +28,10 @@ public class MenPosition
         return m_XPosition;
     }
 
-//    public void setXPosition(int m_XPosition)
-//    {
-//        this.m_XPosition = m_XPosition;
-//    }
+    public void setXPosition(int m_XPosition)
+    {
+        this.m_XPosition = m_XPosition;
+    }
 
     public int getX2Position()
     {
@@ -47,9 +47,9 @@ public class MenPosition
         return m_YPosition;
     }
 
-//    public void setM_YPosition(int m_YPosition) {
-//        this.m_YPosition = m_YPosition;
-//    }
+    public void setYPosition(int m_YPosition) {
+        this.m_YPosition = m_YPosition;
+    }
 
     public int getY2Position() {
         return m_Y2Position;

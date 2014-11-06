@@ -1,5 +1,6 @@
 package mro.de.mlynek;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -65,5 +66,12 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
     @Override
     public void onClientConnectionFailed() {
         Log.i("Info", "Connection failed");
+    }
+
+    public void gameOver()
+    {
+        Intent intent = new Intent(GameActivity.this, MenuActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
