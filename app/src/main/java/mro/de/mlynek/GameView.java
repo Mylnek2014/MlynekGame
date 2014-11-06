@@ -2,7 +2,9 @@ package mro.de.mlynek;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -24,6 +26,7 @@ public class GameView extends SurfaceView
     private int m_menHeight;
     private boolean m_lokalGame = true;
 
+    private GameActivity gameActivity;
     private SurfaceHolder m_surfaceHolder;
     private Bitmap m_backgroundImage;
     private Bitmap m_pitch;
@@ -45,6 +48,7 @@ public class GameView extends SurfaceView
     {
         super(context);
 
+        gameActivity = (GameActivity)context;
         // Höhen und Breiten berechnen
         ((Activity)context).getWindowManager().getDefaultDisplay().getSize(m_size);
         m_edge = (m_size.y - m_size.x) / 2;
@@ -182,6 +186,7 @@ public class GameView extends SurfaceView
             {
                 removeMen(clickedIndex);
                 decreaseEnemyMenCount();
+                isGameFinished();
                 changeTeam();
                 m_clearMen = false;
             }
@@ -359,6 +364,14 @@ public class GameView extends SurfaceView
         return image;
     }
 
+    private void isGameFinished()
+    {
+        if(getCurrentTeamMenCount() < 3)
+        {
+            gameActivity.gameOver();
+        }
+    }
+
     @Override
     protected void onDraw(Canvas canvas)
     {
@@ -383,13 +396,14 @@ public class GameView extends SurfaceView
         }
         canvas.drawBitmap(getCurrentTeamImage(), 10, 10, null);
 
-        canvas.drawBitmap(m_menImage, 5, m_size.y - m_menImage.getHeight(), null);
-        canvas.drawBitmap(m_men2Image, m_size.x-m_men2Image.getWidth()-5, m_size.y - m_men2Image.getHeight() - 5, null);
-        Paint color = new Paint();
-        color.setColor(Color.BLACK);
+        canvas.drawBitmap(m_menImage, 5, m_size.y - m_menImage.getHeight()-60, null);
+        canvas.drawBitmap(m_men2Image, m_size.x-m_men2Image.getWidth()-5, m_size.y - m_men2Image.getHeight() - 60, null);
 
-        canvas.drawText(String.valueOf(m_menCountTeamOne), 5, m_size.y - m_menImage.getHeight(), color);
-        canvas.drawText(String.valueOf(m_menCountTeamTwo), m_size.x-10, m_size.y - m_men2Image.getHeight(), color);
+        Paint color = new Paint();
+        color.setColor(Color.WHITE);
+        color.setTextSize(100);
+        canvas.drawText(String.valueOf(m_menCountTeamOne), 20, m_size.y - 30, color);
+        canvas.drawText(String.valueOf(m_menCountTeamTwo), m_size.x-50, m_size.y - 30, color);
 
     }
 
