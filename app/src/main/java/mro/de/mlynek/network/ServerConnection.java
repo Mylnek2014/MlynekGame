@@ -1,6 +1,8 @@
 package mro.de.mlynek.network;
 
+import android.content.BroadcastReceiver;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pDnsSdServiceInfo;
 import android.util.Log;
 
 /**
@@ -12,7 +14,10 @@ public class ServerConnection implements Connection {
     //private boolean isBluetooth;
     private static ServerConnection self = null;
     private static int refCount = 0;
+    // Wifi P2p State
     private WifiP2pManager.Channel mChannel;
+    private BroadcastReceiver mReceiver;
+    private WifiP2pDnsSdServiceInfo mServiceInfo;
 
     public static ServerConnection createConnection(int port) {
         if(self == null) {
@@ -73,6 +78,19 @@ public class ServerConnection implements Connection {
         return mChannel;
     }
 
+    public void setWifiServiceState(BroadcastReceiver receiver, WifiP2pDnsSdServiceInfo serviceInfo) {
+        mReceiver = receiver;
+        mServiceInfo = serviceInfo;
+    }
+
+    public BroadcastReceiver getWifiReceiver() {
+        return mReceiver;
+    }
+
+    public WifiP2pDnsSdServiceInfo getServiceInfo() {
+        return mServiceInfo;
+    }
+
     public void setConnectionListener(ServerConnectionListener scl) {
         if(gs != null) {
             gs.setConnectionListener(scl);
@@ -87,6 +105,9 @@ public class ServerConnection implements Connection {
                 gs.close();
                 gs = null;
             }
+            //FIXME Try closing wifi stuff here?
+            mReceiver = null;
+            mServiceInfo = null;
             self = null;
         }
     }

@@ -9,6 +9,7 @@ import mro.de.mlynek.network.ClientConnection;
 import mro.de.mlynek.network.ClientConnectionListener;
 import mro.de.mlynek.network.ServerConnection;
 import mro.de.mlynek.network.ServerConnectionListener;
+import mro.de.mlynek.network.wifidirect.WifiDeviceManager;
 
 /**
  * Created by Sony on 09.09.2014.
@@ -46,6 +47,8 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
             clientConn = null;
         }
         if(servConn != null) {
+            WifiDeviceManager.unregisterService(this, servConn.getWifiP2pChannel(), servConn.getWifiReceiver(), servConn.getServiceInfo());
+            WifiDeviceManager.disconnect(this, servConn.getWifiP2pChannel());
             servConn.close();
             servConn = null;
         }
@@ -56,6 +59,7 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
     public void onConnect() {
         //TODO Do something when connected (unlock game etc.)
         Log.i("Info", "Client connected");
+        WifiDeviceManager.unregisterService(this, servConn.getWifiP2pChannel(), servConn.getWifiReceiver(), servConn.getServiceInfo());
     }
 
     @Override

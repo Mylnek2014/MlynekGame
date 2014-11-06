@@ -312,6 +312,37 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         }
     }
 
+    public static void unregisterService(final Activity activity, WifiP2pManager.Channel channel, BroadcastReceiver receiver, WifiP2pDnsSdServiceInfo serviceInfo) {
+        //Unregister Service
+        try {
+            activity.unregisterReceiver(receiver);
+        } catch(IllegalArgumentException iae) {
+            //Service was not registered
+        }
+        try {
+            WifiP2pManager tmpManager = (WifiP2pManager)activity.getSystemService(Context.WIFI_P2P_SERVICE);
+
+            if(tmpManager == null) {
+                Log.i("Info", "FAIL: Could not get WifiP2pManager");
+                return;
+            }
+            tmpManager.removeLocalService(channel, serviceInfo, new WifiP2pManager.ActionListener() {
+                @Override
+                public void onSuccess() {
+                    Toast.makeText(activity.getApplicationContext(), GAMENAME + " WIfi P2P Service Unregistered", Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onFailure(int i) {
+                    Log.d("ERROR", "Could not unregister " + GAMENAME + " WIfi P2P Service");
+                    Toast.makeText(activity.getApplicationContext(), "Could not unregister" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } catch(IllegalArgumentException iae) {
+            //Service was not registered
+        }
+    }
+
     public void close() {
         setDiscoverable(false, "");
         if(gameListener != null) {
@@ -374,6 +405,7 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
             mServerconn = ServerConnection.createConnection(PORT);
             mServerconn.setConnectionListener(this);
             mServerconn.setWifiP2pChannel(mChannel);
+            mServerconn.setWifiServiceState(mReceiver, mServiceInfo);
             mServerconn.start();
             setDiscoverable(false, "");
         } else if(wifiP2pInfo.groupFormed) {
@@ -388,18 +420,22 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
 
     public static void disconnect(Activity activity, WifiP2pManager.Channel channel) {
         WifiP2pManager tmpManager = (WifiP2pManager)activity.getSystemService(Context.WIFI_P2P_SERVICE);
-        if(tmpManager != null) {
-            tmpManager.removeGroup(channel, new WifiP2pManager.ActionListener() {
-                @Override
-                public void onSuccess() {
-                    //TODO
-                }
+        if(tmpManager != null ) {
+            try {
+                tmpManager.removeGroup(channel, new WifiP2pManager.ActionListener() {
+                    @Override
+                    public void onSuccess() {
+                        //TODO
+                    }
 
-                @Override
-                public void onFailure(int i) {
-                    //TODO
-                }
-            });
+                    @Override
+                    public void onFailure(int i) {
+                        //TODO
+                    }
+                });
+            } catch(IllegalArgumentException iae) {
+                // Happens if we didn't use wifi (or something very nasty is going on)
+            }
         }
     }
 
