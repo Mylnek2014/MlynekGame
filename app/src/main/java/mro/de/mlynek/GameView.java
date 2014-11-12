@@ -40,6 +40,7 @@ public class GameView extends SurfaceView
     private int m_team = 0;
     private boolean m_clearMen;
     private int m_lastMenIndex;
+    private boolean m_endGame;
 
     private int m_menCountTeamOne;
     private int m_menCountTeamTwo;
@@ -61,6 +62,7 @@ public class GameView extends SurfaceView
         m_lastMenIndex = -1;
         m_menCountTeamOne = 9;
         m_menCountTeamTwo = 9;
+        m_endGame = false;
 
         // Bilder...
         //m_backgroundImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.bgmenu, m_size.x, m_size.y);
@@ -171,6 +173,9 @@ public class GameView extends SurfaceView
                     else
                     {
                         changeTeam();
+                        // TODO
+                        // Kann sich der Spieler bewegen?
+
                     }
                 }
             }
@@ -186,8 +191,8 @@ public class GameView extends SurfaceView
             {
                 removeMen(clickedIndex);
                 decreaseEnemyMenCount();
-                isGameFinished();
                 changeTeam();
+                isGameFinished();
                 m_clearMen = false;
             }
         }
@@ -368,6 +373,10 @@ public class GameView extends SurfaceView
     {
         if(getCurrentTeamMenCount() < 3)
         {
+            changeTeam();
+            m_endGame = true;
+            drawView();
+            gameActivity.setTeamImage(getCurrentTeamImage());
             gameActivity.gameOver();
         }
     }
@@ -404,6 +413,13 @@ public class GameView extends SurfaceView
         color.setTextSize(100);
         canvas.drawText(String.valueOf(m_menCountTeamOne), 20, m_size.y - 30, color);
         canvas.drawText(String.valueOf(m_menCountTeamTwo), m_size.x-50, m_size.y - 30, color);
+
+        if(m_endGame)
+        {
+            final Paint paintRect = new Paint();
+            paintRect.setARGB(188, 55, 55, 55);
+            canvas.drawRect(0, 0, getWidth(), getHeight(), paintRect);
+        }
 
     }
 
