@@ -239,6 +239,10 @@ public class GameView extends SurfaceView
     //FIXME: Make sure the message gets either send fast or the game is paused
     //till it can be send
     private void sendMessage(String message) {
+        if(m_lokalGame) {
+            Log.d("sendMessage", "ERROR: Called in local Game!");
+            return;
+        }
         if(sendTimer != null) {
             sendTimer.schedule(new SendTask(connection, this, message), 0);
         }
@@ -512,7 +516,7 @@ public class GameView extends SurfaceView
             {
                 setMen(clickedIndex);
                 removeMen(m_lastMenIndex);
-                if(isMyTurn()) {
+                if(!m_lokalGame && isMyTurn()) {
                     sendMessage("move " + m_lastMenIndex + " " + clickedIndex + " \n");
                 }
                 m_lastMenIndex = -1;
@@ -959,7 +963,7 @@ public class GameView extends SurfaceView
 
     private void removeMen(int index)
     {
-        if(isMyTurn()) {
+        if(!m_lokalGame && isMyTurn()) {
             sendMessage("unset "+index+" \n");
             //Log.d("handleClick", "Could not send");
         }
