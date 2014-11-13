@@ -64,10 +64,7 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mDeviceManager = this;
         mActivity = activity;
         mWifiEnabled = false;
-        /*if(onConnectActivity == null) {
-            throw new IllegalArgumentException("No onConnectActivity");
-        }
-        mOnConnectActivity = onConnectActivity;*/
+
         filter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
         filter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
@@ -147,8 +144,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     public void searchDevices() {
         mArrayAdapter.clear();
         mDevices.clear();
-        /*mArrayAdapter.add("Test");
-        mArrayAdapter.notifyDataSetChanged();*/
         Log.d("INFO", "Searching Devices");
         Toast.makeText(mActivity.getApplicationContext(), "Searching Devices", Toast.LENGTH_SHORT).show();
         if(mWifiEnabled) {

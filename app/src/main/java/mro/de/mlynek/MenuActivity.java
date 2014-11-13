@@ -92,8 +92,6 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
         return wifidevmanager;
     }
 
-    //FIXME Overlay till client connected
-
     @Override
     public void onClick(View view)
     {
@@ -105,7 +103,6 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
             wifidevmanager.searchDevices();
             wifidevmanager.getAdapter().insert("Test", 0);
             wifidevmanager.getAdapter().notifyDataSetChanged();
-            //FIXME Reenable onRefresh done (do we get an event for that?)
             ImageButton b = (ImageButton)view;
             b.setEnabled(false);
             refreshButtonTimer = new Timer();
