@@ -14,21 +14,42 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_column="0"
-        android:layout_centerHorizontal="true" />
+        android:src="@drawable/startbtn"
+        android:background="#00ffffff"
+        android:layout_marginRight="15dp"
+        android:layout_marginTop="29dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignRight="@+id/settings" />
 
     <ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/refresh"
+        android:src="@drawable/refresh"
+        android:layout_marginBottom="63dp"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="false"
-        android:layout_centerHorizontal="true"/>
+        android:layout_toLeftOf="@+id/settings"
+        android:layout_alignParentLeft="true"
+        android:background="#00ffffff"
+        android:layout_marginLeft="15dp" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/settings"
+        android:src="@drawable/settingsbtn"
+        android:background="#00ffffff"
+        android:layout_below="@+id/listView"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="15dp" />
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/listView"
         android:layout_below="@id/play"
-        android:layout_above="@id/refresh"/>
+        android:layout_above="@id/refresh"
+        android:cacheColorHint="#90c9c9c9"
+        android:layout_marginLeft="15dp" />
 
 </RelativeLayout>
