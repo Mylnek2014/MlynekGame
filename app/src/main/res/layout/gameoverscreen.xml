@@ -35,24 +35,58 @@
 
     </LinearLayout>
 
-    <LinearLayout
+    <!--<TableLayout-->
+        <!--android:id="@+id/tableLayout2"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:gravity="center">-->
+
+        <!--<TableRow-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_gravity="center">-->
+
+            <!--<ImageButton-->
+                <!--android:id="@+id/bNewTry"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:text="restart" />-->
+        <!--</TableRow>-->
+        <!--<TableRow-->
+            <!--android:layout_width="match_parent">-->
+
+            <!--<ImageButton-->
+                <!--android:id="@+id/bMainMenu"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:text="main menu" />-->
+        <!--</TableRow>-->
+
+    <!--</TableLayout>-->
+
+    <RelativeLayout
         android:id="@+id/linearLayout2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center" >
 
-        <Button
+        <ImageButton
             android:id="@+id/bNewTry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_above="@+id/bMainMenu"
             android:text="restart" />
 
-        <Button
+
+        <ImageButton
             android:id="@+id/bMainMenu"
-            android:layout_width="124dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
             android:text="main menu" />
 
-    </LinearLayout>
+    </RelativeLayout>
 
 </LinearLayout>
