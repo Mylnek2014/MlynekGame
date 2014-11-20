@@ -129,25 +129,53 @@ public class GameView extends SurfaceView
     public void handleMessage(String message) {
         Log.d("HandleMessage", "Received message: "+message);
         if(message.startsWith("set")) {
-            if(isMyTurn()) {
+            if (isMyTurn()) {
                 Log.d("HandleMessage", "Enemy tried to set men during my Turn!");
                 return;
             }
             String[] tmp = message.split(" ");
-            if(tmp.length >= 2) {
-                for(String t: tmp) {
+            if (tmp.length >= 2) {
+                for (String t : tmp) {
                     Log.d("Parts", t);
                 }
                 //TODO: Handle better (Error Dialog or something)
                 try {
                     int clickIndex = Integer.parseInt(tmp[1].trim());
                     handleClick(clickIndex, false);
-                } catch(NumberFormatException nfe) {
+                } catch (NumberFormatException nfe) {
                     Log.d("HandleMessage", "Number Format Exception in set");
                     Log.d("HandleMessage", message);
                     nfe.printStackTrace();
                 }
             }
+        } else if(message.startsWith("select")) {
+            if (isMyTurn()) {
+                Log.d("HandleMessage", "Enemy tried to select men during my Turn!");
+                return;
+            }
+            String[] tmp = message.split(" ");
+            if (tmp.length >= 1) {
+                for (String t : tmp) {
+                    Log.d("Parts", t);
+                }
+                //TODO: Handle better (Error Dialog or something)
+                try {
+                    int clickindex = Integer.parseInt(tmp[1].trim());
+                    if(clickindex > 0 && clickindex < MAXCLICKINDEX) {
+                        m_lastMenIndex = clickindex;
+                    }
+                } catch (NumberFormatException nfe) {
+                    Log.d("HandleMessage", "Number Format Exception in select");
+                    Log.d("HandleMessage", message);
+                    nfe.printStackTrace();
+                }
+            }
+        } else if(message.startsWith("deselect")) {
+            if (isMyTurn()) {
+                Log.d("HandleMessage", "Enemy tried to deselect men during my Turn!");
+                return;
+            }
+            m_lastMenIndex = -1;
         } else if (message.startsWith("move")) {
             if(isMyTurn()) {
                 Log.d("HandleMessage", "Enemy tried to move men during my Turn!");
@@ -284,7 +312,7 @@ public class GameView extends SurfaceView
                             m_lastMenIndex = -1;
                             deSelect = true;
                             if(local) {
-                                sendMessage("select " + clickedIndex + " \n");
+                                sendMessage("deselect \n");
                             }
                         }
                         else
@@ -298,9 +326,9 @@ public class GameView extends SurfaceView
                         if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
                         {
                             m_lastMenIndex = clickedIndex;
-                            /*if(local) {
-                                sendMessage("set " + clickedIndex + " \n");
-                            }*/
+                            if(local) {
+                                sendMessage("select " + clickedIndex + " \n");
+                            }
                         }
                     }
 
@@ -313,7 +341,7 @@ public class GameView extends SurfaceView
                         Log.d("OnTouchEvent", "CheckForMill");
                         m_clearMen = true;
                         if(local) {
-                            sendMessage("checkForMil "+clickedIndex+" \n");
+                            //sendMessage("checkForMil "+clickedIndex+" \n");
                             //Log.d("handleClick", "Could not send");
                         }
                     }
