@@ -155,7 +155,7 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                     if(!mDevices.contains(p2pdevice)) {
                         if (record.containsKey("game") && record.get("game").equals(GAMENAME)) {
                             if (record.containsKey("servername")) {
-                                mArrayAdapter.add(/*p2pdevice.deviceName + " " + p2pdevice.deviceAddress*/ record.get("servername"));
+                                mArrayAdapter.add(/*p2pdevice.deviceName + " " + p2pdevice.deviceAddress*/ record.get("servername")+" ("+p2pdevice.deviceName+")");
                             } else {
                                 mArrayAdapter.add("Dieses Gerät ist dumm");
                             }
