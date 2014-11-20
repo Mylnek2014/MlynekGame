@@ -122,6 +122,7 @@ public class GameView extends SurfaceView
         int clickedIndex = checkClickPosition(event.getX(), event.getY());
         Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
         boolean deSelect = false;
+        boolean menSet = false;
 
         if(isValidIndex(clickedIndex))
         {
@@ -136,11 +137,12 @@ public class GameView extends SurfaceView
                     if(!m_menPositions[clickedIndex].hasMen())
                     {
                         setMen(clickedIndex);
+                        menSet = true;
                     }
                 }
                 else
                 {
-                    if(m_lastMenIndex > -1)
+                    if(isMenSelected())
                     {
                         if(m_lastMenIndex == clickedIndex)
                         {
@@ -163,7 +165,7 @@ public class GameView extends SurfaceView
 
                 }
 
-                if(m_lastMenIndex == -1 && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
+                if(!isMenSelected() && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
                 {
                     if(checkForMill(clickedIndex))
                     {
@@ -172,14 +174,27 @@ public class GameView extends SurfaceView
                     }
                     else
                     {
-                        changeTeam();
-                        // TODO
-                        // Kann sich der Spieler bewegen?
-
+                        if(isSetPhase())
+                        {
+                            if(menSet)
+                            {
+                                changeTeam();
+                            }
+                        }
+                        else
+                        {
+                            changeTeam();
+                        }
                     }
                 }
             }
+
             drawView();
+
+            if(!isSetPhase() && !m_clearMen && !deSelect && !couldMove())
+            {
+                gameOver();
+            }
         }
     }
 
@@ -187,7 +202,29 @@ public class GameView extends SurfaceView
     {
         if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
         {
+            boolean removeMen = false;
+
             if(!checkForMill(clickedIndex))
+            {
+                removeMen = true;
+            }
+            else
+            {
+                boolean onlyMills = true;
+                for(int i = 0; i < m_menPositions.length - 1; i++)
+                {
+                    if(m_menPositions[i].hasMen() && !m_menPositions[i].getImage().equals(getCurrentTeamImage()))
+                    {
+                        if(!checkForMill(i))
+                        {
+                            onlyMills = false;
+                            break;
+                        }
+                    }
+                }
+                removeMen = onlyMills;
+            }
+            if(removeMen)
             {
                 removeMen(clickedIndex);
                 decreaseEnemyMenCount();
@@ -219,6 +256,30 @@ public class GameView extends SurfaceView
     private void changeTeam()
     {
         m_team = getEnemyTeamNumber();
+
+    }
+
+    private boolean couldMove()
+    {
+        boolean movable = false;
+
+        for(int i = 0; i < (m_menPositions.length - 1) && !movable; i++)
+        {
+            if(m_menPositions[i].hasMen() && m_menPositions[i].getImage().equals(getCurrentTeamImage()))
+            {
+                for(int y : m_movePositions[i])
+                {
+                    if(y > -1 && !m_menPositions[y].hasMen())
+                    {
+                        movable = true;
+                        break;
+                    }
+                }
+
+            }
+        }
+
+        return movable;
     }
 
     private boolean isValidIndex(int clickedIndex)
@@ -269,7 +330,7 @@ public class GameView extends SurfaceView
                 }
                 else
                 {
-                    if(m_lastMenIndex > -1)
+                    if(isMenSelected())
                     {
                         moveMen(clickedIndex);
                         m_menPositions[m_lastMenIndex].setImage(null);
@@ -315,7 +376,6 @@ public class GameView extends SurfaceView
                 m_lastMenIndex = -1;
             }
         }
-
     }
 
     private int getCurrentTeamMenCount()
@@ -373,12 +433,27 @@ public class GameView extends SurfaceView
     {
         if(getCurrentTeamMenCount() < 3)
         {
-            changeTeam();
-            m_endGame = true;
-            drawView();
-            gameActivity.setTeamImage(getCurrentTeamImage());
-            gameActivity.gameOver();
+            gameOver();
         }
+    }
+
+    private void gameOver()
+    {
+        changeTeam();
+        m_endGame = true;
+        drawView();
+        gameActivity.setTeamImage(getCurrentTeamImage());
+        gameActivity.gameOver();
+    }
+
+    private boolean isMenSelected()
+    {
+        boolean selected = false;
+        if(m_lastMenIndex > -1)
+        {
+            selected = true;
+        }
+        return selected;
     }
 
     @Override
@@ -387,7 +462,7 @@ public class GameView extends SurfaceView
         canvas.drawColor(Color.argb(255,92,141,229));
         canvas.drawBitmap(m_pitch, 0, m_edge, null);
 
-        if(m_lastMenIndex > -1)
+        if(isMenSelected())
         {
             Paint color = new Paint();
             color.setColor(Color.RED);
