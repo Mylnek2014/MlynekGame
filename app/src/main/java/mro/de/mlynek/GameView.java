@@ -730,8 +730,7 @@ public class GameView extends SurfaceView
         {
             Paint color = new Paint();
             color.setColor(Color.RED);
-            canvas.drawCircle(m_menPositions[m_lastMenIndex].getXPosition() + m_menImage.getHeight()/2-5, m_menPositions[m_lastMenIndex].getYPosition()+ m_menImage.getWidth()/2-5, m_menImage.getHeight()/2-10, color);
-
+            canvas.drawCircle((m_menPositions[m_lastMenIndex].getXPosition() + m_menPositions[m_lastMenIndex].getX2Position()) / 2, ((m_menPositions[m_lastMenIndex].getYPosition() + m_menPositions[m_lastMenIndex].getY2Position()) / 2)-2, ((m_menPositions[m_lastMenIndex].getXPosition() + m_menPositions[m_lastMenIndex].getX2Position()) / 2)-m_menPositions[m_lastMenIndex].getXPosition(), color);
         }
 
         Log.d("MRO GameView", "Check Positions");
@@ -740,8 +739,19 @@ public class GameView extends SurfaceView
             if(mp.hasMen())
             {
                 canvas.drawBitmap(mp.getImage(), mp.getXPosition(), mp.getYPosition(), null);
+                //Debug Code. Zeigt X1 (rot), X2 (gruen) und Mitte ((X1+X2)/2) (blau) der Men an
+                /*{
+                    Paint color = new Paint();
+                    color.setColor(Color.RED);
+                    canvas.drawCircle(mp.getXPosition(), mp.getYPosition(), 1, color);
+                    color.setColor(Color.GREEN);
+                    canvas.drawCircle(mp.getX2Position(), mp.getY2Position(), 1, color);
+                    color.setColor(Color.BLUE);
+                    canvas.drawCircle((mp.getXPosition()+mp.getX2Position())/2, (mp.getYPosition()+mp.getY2Position())/2, 1, color);
+                }*/
             }
         }
+
         canvas.drawBitmap(getCurrentTeamImage(), 10, 10, null);
 
         canvas.drawBitmap(m_menImage, 5, m_size.y - m_menImage.getHeight()-60, null);

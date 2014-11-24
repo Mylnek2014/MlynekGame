@@ -157,7 +157,12 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
 
     public void gameOver()
     {
-        m_dialog.show();
+        this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                m_dialog.show();
+            }
+        });
     }
 
     @Override
