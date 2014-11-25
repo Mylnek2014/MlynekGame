@@ -51,6 +51,10 @@ public class ServerConnection implements Connection {
     }
 
     public String read() {
+        if(gs == null) {
+            Log.e("ServerConnection", "GenericServer ist null");
+            return "";
+        }
         byte[] tmp = gs.recv();
         if(tmp == null) {
             return new String("");
