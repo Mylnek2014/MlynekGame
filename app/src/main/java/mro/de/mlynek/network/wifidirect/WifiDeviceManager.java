@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import mro.de.mlynek.MlynekApplication;
 import mro.de.mlynek.network.*;
 
 //FIXME Receiver must be unregistered at onPause and reregistered at onResume in the Activity
@@ -46,9 +47,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     private WifiP2pDnsSdServiceRequest servRequest;
     private final IntentFilter filter = new IntentFilter();
     private Class<? extends Activity> mOnConnectActivity;
-    //FIXME Seperate?
-    private ClientConnection mClientconn;
-    private ServerConnection mServerconn;
     //TXT Record Properties
     static final int PORT=3333;
     static final String SERVICE_INSTANCE = "_test";
@@ -76,8 +74,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mWifiP2pManager = (WifiP2pManager) activity.getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mWifiP2pManager.initialize(activity, activity.getMainLooper(), null);
         mActivity.registerReceiver(mReceiver, filter);
-        mClientconn = null;
-        mServerconn = null;
         mServiceInfo = null;
         mDevices = new ArrayList<WifiP2pDevice>();
         wdmListener = null;
@@ -310,10 +306,7 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     }
 
     public void stopWifiServer() {
-        if(mServerconn != null) {
-            mServerconn.close();
-            mServerconn = null;
-        }
+        ((MlynekApplication)mActivity.getApplicationContext()).disconnectServerConnection();
     }
 
     public void close() {
@@ -329,12 +322,6 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         }
         if(wdmListener != null) {
             wdmListener = null;
-        }
-        if(mServerconn != null) {
-            mServerconn.close();
-        }
-        if(mClientconn != null) {
-            mClientconn.close();
         }
     }
 
@@ -384,24 +371,23 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         Log.i("Info", "Got Connection Info");
         if(wifiP2pInfo.groupFormed && wifiP2pInfo.isGroupOwner) {
             Log.i("Info", "Server");
-            if(mServerconn != null) {
-                mServerconn.close();
-                mServerconn = null;
-            }
+            ((MlynekApplication)mActivity.getApplicationContext()).disconnectServerConnection();
             //Start server thread
-            mServerconn = ServerConnection.createConnection(PORT);
-            mServerconn.setConnectionListener(this);
-            mServerconn.setWifiP2pChannel(mChannel);
-            mServerconn.setWifiServiceState(mReceiver, mServiceInfo);
-            mServerconn.start();
+            ServerConnection serverconn = ServerConnection.createConnection(PORT);
+            ((MlynekApplication)mActivity.getApplicationContext()).setServerConnection(serverconn);
+            serverconn.setConnectionListener(this);
+            serverconn.setWifiP2pChannel(mChannel);
+            serverconn.setWifiServiceState(mReceiver, mServiceInfo);
+            serverconn.start();
             setDiscoverable(false, "");
         } else if(wifiP2pInfo.groupFormed) {
             Log.i("Info", "Client");
             //Connect as client
-            mClientconn = ClientConnection.createConnection(wifiP2pInfo.groupOwnerAddress.getHostAddress(), PORT, this);
-            mClientconn.setListener(this);
-            mClientconn.setWifiP2pChannel(mChannel);
-            mClientconn.start();
+            ClientConnection clientConn = ClientConnection.createConnection(wifiP2pInfo.groupOwnerAddress.getHostAddress(), PORT, this);
+            ((MlynekApplication)mActivity.getApplicationContext()).setClientConnection(clientConn);
+            clientConn.setListener(this);
+            clientConn.setWifiP2pChannel(mChannel);
+            clientConn.start();
         }
     }
 
@@ -455,7 +441,9 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         } else {
             Log.d("ERROR", "No wdmListener (onClientConnect)");
         }
-        mClientconn.write("msg Hello World");
+        if(((MlynekApplication)mActivity.getApplicationContext()).getClientConnection() != null) {
+            ((MlynekApplication)mActivity.getApplicationContext()).getClientConnection().write("msg Hello World");
+        }
     }
 
     @Override
