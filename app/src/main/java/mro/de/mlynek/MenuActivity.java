@@ -24,7 +24,6 @@ import mro.de.mlynek.network.wifidirect.WifiDeviceManagerListener;
  */
 public class MenuActivity extends FragmentActivity implements View.OnClickListener, ServerConnectionListener, WifiDeviceManagerListener {
     private WifiDeviceManager wifidevmanager;
-    private ServerConnection servConn;
     private AlertDialog connectionWait;
     private AlertDialog gameTypeDialog;
     private boolean localGame;
@@ -66,7 +65,7 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
             public void onClick(DialogInterface dialogInterface, int i) {
                 Log.d("INFO", "Abbruch Button");
                 if(!wifidevmanager.isWifiEnabled()) {
-                    servConn.close();
+                    ((MlynekApplication)getApplicationContext()).disconnectServerConnection();
                 } else {
                     wifidevmanager.setDiscoverable(false, "Młyneck");
                     wifidevmanager.stopWifiServer();
@@ -78,7 +77,7 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
             public void onCancel(DialogInterface dialogInterface) {
                 Log.d("INFO", "Connection Wait Dialog Cancelled");
                 if(!wifidevmanager.isWifiEnabled()) {
-                    servConn.close();
+                    ((MlynekApplication)getApplicationContext()).disconnectServerConnection();
                 } else {
                     wifidevmanager.setDiscoverable(false, "Młyneck");
                     wifidevmanager.stopWifiServer();
@@ -113,11 +112,9 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
     protected void startWifiServer() {
         // For testing in the Emulator
         if(!wifidevmanager.isWifiEnabled()) {
-            if(servConn != null) {
-                servConn.close();
-                servConn = null;
-            }
-            servConn = ServerConnection.createConnection(3333);
+            ((MlynekApplication)getApplicationContext()).disconnectServerConnection();
+            ServerConnection servConn = ServerConnection.createConnection(3333);
+            ((MlynekApplication)getApplicationContext()).setServerConnection(servConn);
             servConn.setConnectionListener(this);
             servConn.start();
         } else {
@@ -146,10 +143,6 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
         if(wifidevmanager != null) {
             wifidevmanager.close();
             wifidevmanager = null;
-        }
-        if(servConn != null) {
-            servConn.close();
-            servConn = null;
         }
         super.onDestroy();
     }

@@ -27,8 +27,6 @@ import android.widget.ImageView;
  */
 public class GameActivity extends FragmentActivity implements ServerConnectionListener, ClientConnectionListener, View.OnClickListener {
     private GameView gameView;
-    private ClientConnection clientConn;
-    private ServerConnection servConn;
     private Dialog m_dialog;
     private ImageView m_teamImage;
     private ImageButton m_newTry;
@@ -56,17 +54,19 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
         m_dialog.hide();
 
         localGame = getIntent().getBooleanExtra("localGame", false);
+        ClientConnection clientConn = null;
+        ServerConnection servConn = null;
         conn = null;
         if(!localGame) {
-            clientConn = ClientConnection.getConnection();
+            clientConn = ((MlynekApplication)getApplicationContext()).getClientConnection();
             if (clientConn == null || !clientConn.isConnected()) {
-                servConn = ServerConnection.getConnection();
+                servConn = ((MlynekApplication)getApplicationContext()).getServerConnection();
                 if (servConn != null) {
                     servConn.setConnectionListener(this);
                     conn = servConn;
                 }
                 if (clientConn != null) {
-                    clientConn.close();
+                    ((MlynekApplication)getApplicationContext()).disconnectClientConnection();
                     clientConn = null;
                 }
             } else {
@@ -115,14 +115,10 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
         if(conn != null) {
             conn = null;
         }
-        if(clientConn != null) {
-            clientConn.close();
-            clientConn = null;
-        }
-        if(servConn != null) {
-            WifiDeviceManager.disconnect(this, servConn.getWifiP2pChannel());
-            servConn.close();
-            servConn = null;
+        ((MlynekApplication)getApplicationContext()).disconnectClientConnection();
+        if(((MlynekApplication)getApplicationContext()).getServerConnection() != null) {
+            WifiDeviceManager.disconnect(this, ((MlynekApplication)getApplicationContext()).getServerConnection().getWifiP2pChannel());
+            ((MlynekApplication)getApplicationContext()).disconnectServerConnection();
         }
         super.onDestroy();
     }

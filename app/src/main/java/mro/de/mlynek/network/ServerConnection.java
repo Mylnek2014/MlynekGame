@@ -12,30 +12,19 @@ public class ServerConnection implements Connection {
     private GenericServer gs;
     //private BluetoothConnectedThread;
     //private boolean isBluetooth;
-    private static ServerConnection self = null;
-    private static int refCount = 0;
     // Wifi P2p State
     private WifiP2pManager.Channel mChannel;
     private BroadcastReceiver mReceiver;
     private WifiP2pDnsSdServiceInfo mServiceInfo;
 
+    //TODO: Check if Port is already used
     public static ServerConnection createConnection(int port) {
-        if(self == null) {
-            refCount++;
-            Log.i("INFO", "Server connection created. RefCount: " + refCount);
-            self = new ServerConnection(new GenericServer(port));
-            return self;
-        } else {
+        //if(!portUsed) {
+            Log.i("ServerConnection", "Server connection created on Port: " + port);
+            return new ServerConnection(new GenericServer(port));
+        /*} else {
             throw new IllegalArgumentException("ServerConnection already created");
-        }
-    }
-
-    public static ServerConnection getConnection() {
-        if(self != null) {
-            refCount++;
-            Log.i("INFO", "Server connection requested. RefCount: "+refCount);
-        }
-        return self;
+        }*/
     }
 
     private ServerConnection(GenericServer gs) {
@@ -102,19 +91,13 @@ public class ServerConnection implements Connection {
     }
 
     public void close() {
-        if(refCount > 0) {
-            refCount--;
+        Log.i("ServerConnection", "Server connection closed.");
+        if (gs != null) {
+            gs.close();
+            gs = null;
         }
-        Log.i("INFO", "Server connection closed. RefCount: "+refCount);
-        if(refCount == 0) {
-            if(gs != null) {
-                gs.close();
-                gs = null;
-            }
-            //FIXME Try closing wifi stuff here?
-            mReceiver = null;
-            mServiceInfo = null;
-            self = null;
-        }
+        //FIXME Try closing wifi stuff here?
+        mReceiver = null;
+        mServiceInfo = null;
     }
 }

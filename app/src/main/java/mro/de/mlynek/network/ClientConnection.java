@@ -10,29 +10,17 @@ public class ClientConnection implements Connection, ClientConnectionListener {
     private ThreadClient tc;
     //private BluetoothConnectedThread;
     //private boolean isBluetooth;
-    private static ClientConnection self = null;
-    private static int refCount = 0;
     private ClientConnectionListener mListener;
     private WifiP2pManager.Channel mChannel;
 
+    //TODO: Check if already connected to the host on this port
     public static ClientConnection createConnection(String host, int port, ClientConnectionListener listener) {
-        if(self == null) {
-            refCount++;
-            Log.i("INFO", "Client connection created. RefCount: "+refCount);
-            self = new ClientConnection(new ThreadClient(host, port));
-            self.setListener(listener);
-            return self;
-        } else {
+        //if(!connected(host, port)) {
+            Log.i("ClientConnection", "Client connection created. Host: "+host+" on Port: "+port);
+            return new ClientConnection(new ThreadClient(host, port));
+        /*} else {
             throw new IllegalArgumentException("ClientConnection already created");
-        }
-    }
-
-    public static ClientConnection getConnection() {
-        if(self != null) {
-            refCount++;
-            Log.i("INFO", "Client connection requested. RefCount: "+refCount);
-        }
-        return self;
+        }*/
     }
 
     private ClientConnection(ThreadClient tc) {
@@ -81,16 +69,10 @@ public class ClientConnection implements Connection, ClientConnectionListener {
     }
 
     public void close() {
-        if(refCount > 0) {
-            refCount--;
-        }
-        Log.i("INFO", "Client connection closed. RefCount: "+refCount);
-        if(refCount == 0) {
-            if(tc != null) {
-                tc.close();
-                tc = null;
-            }
-            self = null;
+        Log.i("ClientConnection", "Client connection closed.");
+        if(tc != null) {
+            tc.close();
+            tc = null;
         }
     }
 

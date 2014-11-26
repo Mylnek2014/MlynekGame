@@ -29,7 +29,6 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
     private ListView deviceList;
     private ArrayAdapter deviceAdapter;
     private View.OnClickListener clickListener;
-    private ClientConnection ipConn;
     private WifiDeviceManager wifidevmanager;
 
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState)
@@ -82,10 +81,6 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
     @Override
     public void onDetach() {
         wifidevmanager = null;
-        if(ipConn != null) {
-            ipConn.close();
-            ipConn = null;
-        }
         super.onDetach();
     }
 
@@ -100,8 +95,11 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
         if (adapterView.getId() == R.id.listView) {
             //FIXME Testcode
             if(i == 0) {
+                ClientConnection ipConn = ((MlynekApplication)getActivity().getApplicationContext()).getClientConnection();
                 if(ipConn == null) {
                     ipConn = ClientConnection.createConnection("10.0.2.2", 3334, this);
+                    ((MlynekApplication)getActivity().getApplicationContext()).setClientConnection(ipConn);
+                    ipConn.setListener(this);
                     ipConn.start();
                 }
             } else {
@@ -118,8 +116,8 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
 
     @Override
     public void onClientConnectionFailed() {
-        ipConn.close();
-        ipConn = null;
+        ((MlynekApplication)getActivity().getApplicationContext()).disconnectClientConnection();
+        //FIXME: Tell the Player and prevent starting a local Game
     }
 
     @Override
