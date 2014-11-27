@@ -99,7 +99,7 @@ public class GameView extends SurfaceView
         {
             if(m_lokalGame)
             {
-                touchLokal2(event);
+                touchLokal(event);
             }
             else
             {
@@ -114,7 +114,7 @@ public class GameView extends SurfaceView
 
     }
 
-    private void touchLokal2(MotionEvent event)
+    private void touchLokal(MotionEvent event)
     {
         Log.d("OnTouchEvent", "ActionDown");
         int clickedIndex = checkClickPosition(event.getX(), event.getY());
@@ -135,6 +135,7 @@ public class GameView extends SurfaceView
                     if(!m_menPositions[clickedIndex].hasMen())
                     {
                         setMen(clickedIndex);
+                        increaseCurrentTeamCount();
                         menSet = true;
                     }
                 }
@@ -225,6 +226,7 @@ public class GameView extends SurfaceView
             if(removeMen)
             {
                 removeMen(clickedIndex);
+                gameActivity.vibrate();
                 decreaseEnemyMenCount();
                 changeTeam();
                 isGameFinished();
@@ -317,68 +319,6 @@ public class GameView extends SurfaceView
         }
         return setPhase;
     }
-
-//    private void touchLokal(MotionEvent event)
-//    {
-//        Log.d("OnTouchEvent", "ActionDown");
-//        int clickedIndex = checkClickPosition(event.getX(), event.getY());
-//        Log.d("OnTouchEvent", "ClickedIndex: " + clickedIndex);
-//        if(clickedIndex > -1)
-//        {
-//            // Stein entfernen
-//            if(m_clearMen)
-//            {
-//                if(m_menPositions[clickedIndex].hasMen() && !m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
-//                {
-//                    if(!checkForMill(clickedIndex))
-//                    {
-//                        m_menPositions[clickedIndex].setImage(null);
-//                        m_team = (m_team + 1) % 2;
-//                        m_clearMen = false;
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                if(m_turnCount < 18 && !m_menPositions[clickedIndex].hasMen())
-//                {
-//                    setMen(clickedIndex);
-//                }
-//                else
-//                {
-//                    if(isMenSelected())
-//                    {
-//                        moveMen(clickedIndex);
-//                        m_menPositions[m_lastMenIndex].setImage(null);
-//                    }
-//                    else
-//                    {
-//                        Log.d("OnTouchEvent", "lastMenIndex: gesetzt");
-//                        if(m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()))
-//                        {
-//                            m_lastMenIndex = clickedIndex;
-//                        }
-//                    }
-//                }
-//
-//                if(m_lastMenIndex == -1)
-//                {
-//                    if(checkForMill(clickedIndex))
-//                    {
-//                        Log.d("OnTouchEvent", "CheckForMill");
-//                        m_clearMen = true;
-//                    }
-//                    else
-//                    {
-//                        m_team = (m_team + 1) % 2;
-//                    }
-//                }
-//            }
-//
-//            drawView();
-//        }
-//        Log.d("OnTouchEvent", "TurnCount: " + String.valueOf(m_turnCount));
-//    }
 
     private void moveMen(int clickedIndex)
     {
@@ -872,7 +812,6 @@ public class GameView extends SurfaceView
     private void setMen(int index)
     {
         m_menPositions[index].setImage(getCurrentTeamImage());
-        increaseCurrentTeamCount();
         m_turnCount++;
     }
 

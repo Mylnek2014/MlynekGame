@@ -1,10 +1,12 @@
 package mro.de.mlynek;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.View;
@@ -72,5 +74,11 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
                 finish();
         }
 
+    }
+
+    public void vibrate()
+    {
+        Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        vb.vibrate(300);
     }
 }
