@@ -5,12 +5,11 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -24,7 +23,7 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
     private ImageView m_teamImage;
     private ImageButton m_newTry;
     private ImageButton m_mainMenu;
-
+    private MediaPlayer m_explosion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -44,6 +43,7 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
         m_mainMenu.setImageBitmap(Util.decodeSampledBitmapFromResource(getResources(), R.drawable.menubtn, size.x / 2, size.y / 2));
         m_mainMenu.setOnClickListener(this);
         m_dialog.hide();
+        m_explosion = MediaPlayer.create(this, R.raw.logo);
     }
 
     public void setTeamImage(Bitmap image)
@@ -80,5 +80,18 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
     {
         Vibrator vb = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         vb.vibrate(300);
+    }
+
+    public void playExplosion()
+    {
+        m_explosion.start();
+    }
+
+    @Override
+    protected void onDestroy()
+    {
+        super.onDestroy();
+        m_explosion.release();
+        m_dialog.dismiss();
     }
 }
