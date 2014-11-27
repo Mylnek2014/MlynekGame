@@ -103,14 +103,14 @@ public class GameView extends SurfaceView
             }
         });
 
-        Log.d("INFO", "Game view created");
+        Log.d("GameView", "Game view created");
 
         connection = ((GameActivity)context).getConnection();
         m_lokalGame = ((GameActivity)context).isLocalGame();
         if(m_lokalGame) {
-            Log.d("Info", "local Game");
+            Log.d("GameView", "local Game");
         } else {
-            Log.d("Info", "Network Game");
+            Log.d("GameView", "Network Game");
         }
 
         //TODO: Fair team assignement (is m_team used for the same purpose?)
@@ -294,6 +294,7 @@ public class GameView extends SurfaceView
                     if(!m_menPositions[clickedIndex].hasMen())
                     {
                         setMen(clickedIndex);
+                        increaseCurrentTeamCount();
                         if(local) {
                             sendMessage("set "+clickedIndex+" \n");
                             //Log.d("handleClick", "Could not send");
