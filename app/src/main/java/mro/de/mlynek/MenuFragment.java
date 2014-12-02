@@ -46,7 +46,8 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
         wifidevmanager = ((MenuActivity)getActivity()).getWifiDeviceManager();
         wifidevmanager.setAdapter(deviceAdapter);
         wifidevmanager.searchDevices();
-        deviceAdapter.insert("Test", 0);
+        //Testcode
+        //deviceAdapter.insert("Test", 0);
         return v;
     }
 
@@ -93,8 +94,8 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         if (adapterView.getId() == R.id.listView) {
-            //FIXME Testcode
-            if(i == 0) {
+            //Testcode
+            /*if(i == 0) {
                 ClientConnection ipConn = ((MlynekApplication)getActivity().getApplicationContext()).getClientConnection();
                 if(ipConn == null) {
                     ipConn = ClientConnection.createConnection("10.0.2.2", 3334, this);
@@ -103,9 +104,9 @@ public class MenuFragment extends Fragment implements View.OnClickListener, Adap
                     ipConn.start();
                 }
             } else {
-                //FIXME set to i when removing the testcode
                 wifidevmanager.connectToDevice(i-1);
-            }
+            }*/
+            wifidevmanager.connectToDevice(i);
         }
     }
 

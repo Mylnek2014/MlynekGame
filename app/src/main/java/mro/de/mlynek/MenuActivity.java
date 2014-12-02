@@ -100,7 +100,8 @@ public class MenuActivity extends FragmentActivity implements View.OnClickListen
         }
         if(view.getId() == R.id.refresh) {
             wifidevmanager.searchDevices();
-            wifidevmanager.getAdapter().insert("Test", 0);
+            //Testcode
+            //wifidevmanager.getAdapter().insert("Test", 0);
             wifidevmanager.getAdapter().notifyDataSetChanged();
             ImageButton b = (ImageButton)view;
             b.setEnabled(false);
