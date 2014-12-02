@@ -13,6 +13,8 @@ public class MlynekApplication extends Application {
     private ClientConnection clientConnection;
     private ServerConnection serverConnection;
 
+    public static final boolean debugToasts = false;
+
     public void setClientConnection(ClientConnection clientConnection) {
         if(this.clientConnection != null) {
             Log.e("MlynekApplication", "Tried to change clientConnection without disconnecting first");

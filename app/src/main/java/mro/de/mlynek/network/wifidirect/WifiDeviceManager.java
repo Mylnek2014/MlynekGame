@@ -95,11 +95,15 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
                 if(state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
                     Log.d("INFO", "WIFI P2P Enabled");
-                    Toast.makeText(mActivity.getApplicationContext(), "WIFI P2P Enabled", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "WIFI P2P Enabled", Toast.LENGTH_SHORT).show();
+                    }
                     mWifiEnabled = true;
                 } else {
                     Log.d("INFO", "WIFI P2P Disabled");
-                    Toast.makeText(mActivity.getApplicationContext(), "WIFI P2P Disabled", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "WIFI P2P Disabled", Toast.LENGTH_SHORT).show();
+                    }
                     mWifiEnabled = false;
                 }
             }
@@ -120,11 +124,15 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
 
                 if(networkInfo == null) {
                     Log.d("INFO", "Nope, Nope, Nope no network info");
-                    Toast.makeText(mActivity.getApplicationContext(), "Nope, Nope, Nope no network info", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "Nope, Nope, Nope no network info", Toast.LENGTH_SHORT).show();
+                    }
                     return;
                 } else {
                     Log.i("INFO", "Got Network info");
-                    Toast.makeText(mActivity.getApplicationContext(), "Got Network Info!!!!", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "Got Network Info!!!!", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 if(networkInfo.isConnected()) {
@@ -141,13 +149,17 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
         mArrayAdapter.clear();
         mDevices.clear();
         Log.d("INFO", "Searching Devices");
-        Toast.makeText(mActivity.getApplicationContext(), "Searching Devices", Toast.LENGTH_SHORT).show();
+        if(MlynekApplication.debugToasts) {
+            Toast.makeText(mActivity.getApplicationContext(), "Searching Devices", Toast.LENGTH_SHORT).show();
+        }
         if(mWifiEnabled) {
            gameListener = new WifiP2pManager.DnsSdTxtRecordListener() {
                 @Override
                 public void onDnsSdTxtRecordAvailable(String s, Map<String, String> record, WifiP2pDevice p2pdevice) {
                     Log.d("INFO", "DnsSdTxtRecord available -" + record.toString());
-                    Toast.makeText(mActivity.getApplicationContext(), "DnsSdTxtRecord available" + record.toString(), Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "DnsSdTxtRecord available" + record.toString(), Toast.LENGTH_SHORT).show();
+                    }
                     if(!mDevices.contains(p2pdevice)) {
                         if (record.containsKey("game") && record.get("game").equals(GAMENAME)) {
                             if (record.containsKey("servername")) {
@@ -164,7 +176,9 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
 
             if(gameListener == null) {
                 Log.d("INFO", "Error while creating DnsSdTxtRecord listener");
-                Toast.makeText(mActivity.getApplicationContext(), "Error while creating DnsSdTxtRecord listener", Toast.LENGTH_SHORT).show();
+                if(MlynekApplication.debugToasts) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Error while creating DnsSdTxtRecord listener", Toast.LENGTH_SHORT).show();
+                }
                 return;
             }
 
@@ -173,13 +187,17 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 public void onDnsSdServiceAvailable(String s, String s2, WifiP2pDevice device) {
                     //device.deviceName =
                     Log.d("INFO", "DnsSdService available");
-                    Toast.makeText(mActivity.getApplicationContext(), "DnsSdService available", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "DnsSdService available", Toast.LENGTH_SHORT).show();
+                    }
                 }
             };
 
             if(responseListener == null) {
                 Log.d("INFO", "Error while creating DnsSdServiceResponse listener");
-                Toast.makeText(mActivity.getApplicationContext(), "Error while creating DnsSdServiceResponse listener", Toast.LENGTH_SHORT).show();
+                if(MlynekApplication.debugToasts) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Error while creating DnsSdServiceResponse listener", Toast.LENGTH_SHORT).show();
+                }
                 return;
             }
 
@@ -187,7 +205,9 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
 
             if(servRequest == null) {
                 Log.d("INFO", "Error while creating new WifiP2pDnsSdServiceRequest");
-                Toast.makeText(mActivity.getApplicationContext(), "Error while creating new WifiP2pDnsSdServiceRequest", Toast.LENGTH_SHORT).show();
+                if(MlynekApplication.debugToasts) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Error while creating new WifiP2pDnsSdServiceRequest", Toast.LENGTH_SHORT).show();
+                }
                 return;
             }
 
@@ -195,20 +215,28 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 @Override
                 public void onSuccess() {
                     Log.d("INFO", "Service Request added");
-                    Toast.makeText(mActivity.getApplicationContext(), "Service Request added", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "Service Request added", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
                 public void onFailure(int code) {
                     if (code == WifiP2pManager.P2P_UNSUPPORTED) {
                         Log.d("INFO", "P2P isn't supported on this device");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P isn't supported on this device", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P isn't supported on this device", Toast.LENGTH_SHORT).show();
+                        }
                     } else if (code == WifiP2pManager.BUSY) {
                         Log.d("INFO", "P2P device busy");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P device busy", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P device busy", Toast.LENGTH_SHORT).show();
+                        }
                     } else if (code == WifiP2pManager.ERROR) {
                         Log.d("INFO", "P2P device error");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P device error", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P device error", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             });
@@ -220,7 +248,9 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 public void onSuccess() {
                     // Success!
                     Log.d("INFO", "Successfully started Discovering Services!");
-                    Toast.makeText(mActivity.getApplicationContext(), "Successfully started Discovering Services!", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "Successfully started Discovering Services!", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
                 @Override
@@ -228,13 +258,19 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                     // Fail
                     if (code == WifiP2pManager.P2P_UNSUPPORTED) {
                         Log.d("INFO", "P2P isn't supported on this device");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P isn't supported on this device", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P isn't supported on this device", Toast.LENGTH_SHORT).show();
+                        }
                     } else if (code == WifiP2pManager.BUSY) {
                         Log.d("INFO", "P2P device busy");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P device busy", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P device busy", Toast.LENGTH_SHORT).show();
+                        }
                     } else if (code == WifiP2pManager.ERROR) {
                         Log.d("INFO", "P2P device error");
-                        Toast.makeText(mActivity.getApplicationContext(), "P2P device error", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "P2P device error", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
             });
@@ -274,14 +310,18 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
             mWifiP2pManager.addLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
                 @Override
                 public void onSuccess() {
-                    Toast.makeText(mActivity.getApplicationContext(), GAMENAME + " WIfi P2P Service Registered", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), GAMENAME + " WIfi P2P Service Registered", Toast.LENGTH_SHORT).show();
+                    }
                     Log.d("INFO", GAMENAME + " WIfi P2P Service Registered");
                 }
 
                 @Override
                 public void onFailure(int i) {
                     Log.d("ERROR", "Could not register " + GAMENAME + " WIfi P2P Service");
-                    Toast.makeText(mActivity.getApplicationContext(), "Could not register" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
+                    if(MlynekApplication.debugToasts) {
+                        Toast.makeText(mActivity.getApplicationContext(), "Could not register" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         } else {
@@ -290,13 +330,17 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
                 mWifiP2pManager.removeLocalService(mChannel, mServiceInfo, new WifiP2pManager.ActionListener() {
                     @Override
                     public void onSuccess() {
-                        Toast.makeText(mActivity.getApplicationContext(), GAMENAME + " WIfi P2P Service Unregistered", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), GAMENAME + " WIfi P2P Service Unregistered", Toast.LENGTH_SHORT).show();
+                        }
                     }
 
                     @Override
                     public void onFailure(int i) {
                         Log.d("ERROR", "Could not unregister " + GAMENAME + " WIfi P2P Service");
-                        Toast.makeText(mActivity.getApplicationContext(), "Could not unregister" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
+                        if(MlynekApplication.debugToasts) {
+                            Toast.makeText(mActivity.getApplicationContext(), "Could not unregister" + GAMENAME + " WIfi P2P Service", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
             } catch(IllegalArgumentException iae) {
@@ -328,13 +372,17 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
     public void connectToDevice(int id) {
         if(!mWifiEnabled) {
             Log.d("INFO", "Wifi not enabled");
-            Toast.makeText(mActivity.getApplicationContext(),"Wifi not enabled (l. 280)" , Toast.LENGTH_SHORT).show();
+            if(MlynekApplication.debugToasts) {
+                Toast.makeText(mActivity.getApplicationContext(), "Wifi not enabled (l. 280)", Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
         if(id >= mDevices.size()) {
             Log.d("INFO", "No id: "+id);
-            Toast.makeText(mActivity.getApplicationContext(),"No id: "+id , Toast.LENGTH_SHORT).show();
+            if(MlynekApplication.debugToasts) {
+                Toast.makeText(mActivity.getApplicationContext(), "No id: " + id, Toast.LENGTH_SHORT).show();
+            }
             return;
         }
 
@@ -345,13 +393,17 @@ public class WifiDeviceManager implements WifiP2pManager.PeerListListener, WifiP
             @Override
             public void onSuccess() {
                 Log.d("INFO", "Success connecting to device "/*+config.deviceAddress*/);
-                Toast.makeText(mActivity.getApplicationContext(), "Success connecting to device ", Toast.LENGTH_SHORT).show();
+                if(MlynekApplication.debugToasts) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Success connecting to device ", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
             public void onFailure(int i) {
                 Log.d("INFO", "Failed to connect to device "/*+config.deviceAddress*/);
-                Toast.makeText(mActivity.getApplicationContext(), "Failed to connect to device ", Toast.LENGTH_SHORT).show();
+                if(MlynekApplication.debugToasts) {
+                    Toast.makeText(mActivity.getApplicationContext(), "Failed to connect to device ", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
