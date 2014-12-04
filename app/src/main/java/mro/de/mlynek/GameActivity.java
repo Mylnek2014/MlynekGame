@@ -23,7 +23,6 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
     private ImageView m_teamImage;
     private ImageButton m_newTry;
     private ImageButton m_mainMenu;
-    private MediaPlayer m_explosion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -43,7 +42,6 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
         m_mainMenu.setImageBitmap(Util.decodeSampledBitmapFromResource(getResources(), R.drawable.menubtn, size.x / 2, size.y / 2));
         m_mainMenu.setOnClickListener(this);
         m_dialog.hide();
-        m_explosion = MediaPlayer.create(this, R.raw.logo);
     }
 
     public void setTeamImage(Bitmap image)
@@ -82,16 +80,10 @@ public class GameActivity extends FragmentActivity implements View.OnClickListen
         vb.vibrate(300);
     }
 
-    public void playExplosion()
-    {
-        m_explosion.start();
-    }
-
     @Override
     protected void onDestroy()
     {
         super.onDestroy();
-        m_explosion.release();
         m_dialog.dismiss();
     }
 }

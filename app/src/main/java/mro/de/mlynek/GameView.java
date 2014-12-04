@@ -23,7 +23,6 @@ public class GameView extends SurfaceView
     private int m_columnHeight;
     private int m_menHeight;
     private boolean m_lokalGame = true;
-    private boolean m_drawExp = false;
 
     private GameActivity gameActivity;
     private SurfaceHolder m_surfaceHolder;
@@ -31,7 +30,6 @@ public class GameView extends SurfaceView
     private Bitmap m_pitch;
     private Bitmap m_menImage;
     private Bitmap m_men2Image;
-    private Bitmap m_expImage;
 
     private MenPosition[] m_menPositions;
     private int[][] m_mills;
@@ -69,7 +67,6 @@ public class GameView extends SurfaceView
         m_pitch = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.pitch, m_size.x, m_size.y);
         m_menImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.german, m_menHeight, m_menHeight);
         m_men2Image = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.polski, m_menHeight, m_menHeight);
-        m_expImage = Util.decodeSampledBitmapFromResource(context.getResources(), R.drawable.explosion, m_size.x, m_size.y);
 
         // Setzen der Mühlenpositionen, Steinpositionen
         m_mills = setMillPositions();
@@ -144,6 +141,7 @@ public class GameView extends SurfaceView
                 }
                 else
                 {
+                    menSet = true;
                     if(isMenSelected())
                     {
                         if(m_lastMenIndex == clickedIndex)
@@ -167,7 +165,7 @@ public class GameView extends SurfaceView
 
                 }
 
-                if(!isMenSelected() && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
+                if(!isMenSelected() && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect && menSet)
                 {
                     if(checkForMill(clickedIndex))
                     {
@@ -228,19 +226,6 @@ public class GameView extends SurfaceView
             }
             if(removeMen)
             {
-                gameActivity.playExplosion();
-                try
-                {
-                    Thread.sleep(1500);
-                    m_drawExp = true;
-                    drawView();
-                    m_drawExp = false;
-                    Thread.sleep(500);
-                }
-                catch(Exception e)
-                {
-
-                }
                 removeMen(clickedIndex);
                 gameActivity.vibrate();
                 decreaseEnemyMenCount();
@@ -442,11 +427,6 @@ public class GameView extends SurfaceView
         drawMens(canvas);
 
         drawGameInformation(canvas);
-
-        if(m_drawExp)
-        {
-            canvas.drawBitmap(m_expImage, 0, 0, null);
-        }
 
         if(m_endGame)
         {
