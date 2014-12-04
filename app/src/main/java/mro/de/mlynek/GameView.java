@@ -304,6 +304,7 @@ public class GameView extends SurfaceView
                 }
                 else
                 {
+                    menSet = true;
                     if(isMenSelected())
                     {
                         if(m_lastMenIndex == clickedIndex)
@@ -333,7 +334,7 @@ public class GameView extends SurfaceView
 
                 }
 
-                if(!isMenSelected() && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect)
+                if(!isMenSelected() && m_menPositions[clickedIndex].hasMen() && m_menPositions[clickedIndex].getImage().equals(getCurrentTeamImage()) && !deSelect && menSet)
                 {
                     if(checkForMill(clickedIndex))
                     {
