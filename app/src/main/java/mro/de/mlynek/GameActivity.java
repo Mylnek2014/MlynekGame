@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.support.v4.app.FragmentActivity;
@@ -20,7 +21,6 @@ import mro.de.mlynek.network.ServerConnectionListener;
 import mro.de.mlynek.network.wifidirect.WifiDeviceManager;
 
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -33,6 +33,7 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
     private ImageView m_teamImage;
     private ImageButton m_newTry;
     private ImageButton m_mainMenu;
+
     private Connection conn;
     private Timer timer;
     private boolean localGame;
@@ -122,6 +123,7 @@ public class GameActivity extends FragmentActivity implements ServerConnectionLi
             WifiDeviceManager.disconnect(this, ((MlynekApplication)getApplicationContext()).getServerConnection().getWifiP2pChannel());
             ((MlynekApplication)getApplicationContext()).disconnectServerConnection();
         }
+        m_dialog.dismiss();
         super.onDestroy();
     }
 
